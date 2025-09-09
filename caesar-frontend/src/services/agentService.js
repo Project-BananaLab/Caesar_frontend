@@ -78,6 +78,11 @@ class AgentService {
     llmService.clearConversationHistory()
   }
 
+  // 대화 히스토리 로드 함수 추가
+  loadConversationHistory(messages) {
+    this.conversationHistory = messages || []
+  }
+
   // 현재 처리 상태 조회
   isCurrentlyProcessing() {
     return this.isProcessing

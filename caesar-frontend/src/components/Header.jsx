@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import llmService from '../services/llmService.js'
+import LoadingModal from './LoadingModal'
 
 export default function Header({ 
   title = 'Caesar AI Assistant', 
@@ -55,6 +56,7 @@ export default function Header({
   }
 
   return (
+    <>
     <header style={{
       height: 56,
       borderBottom: '1px solid #E5E7EB',
@@ -121,5 +123,10 @@ export default function Header({
         </div>
       </div>
     </header>
+    <LoadingModal 
+      isOpen={isToggling} 
+      message="Agent 모드를 변경하는 중입니다..." 
+    />
+    </>
   )
 }

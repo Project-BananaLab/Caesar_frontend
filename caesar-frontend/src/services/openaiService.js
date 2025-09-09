@@ -11,7 +11,7 @@ class OpenAIService {
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY
     
     if (!apiKey || apiKey === 'your_openai_api_key_here') {
-      console.warn('⚠️ OpenAI API 키가 설정되지 않았습니다. .env 파일을 확인해주세요.')
+      console.log('🔧 개발 모드: OpenAI API 키 없이 시뮬레이션으로 작동합니다.')
       this.openai = null
       this.isConfigured = false
       return
