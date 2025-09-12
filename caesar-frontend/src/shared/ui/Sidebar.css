@@ -46,8 +46,7 @@
 }
 
 .logout-button:hover {
-  background: #1F2937;
-  border-color: #F87171;
+  opacity: 0.9;
 }
 
 .sidebar-nav {
@@ -72,8 +71,7 @@
 }
 
 .nav-button:hover {
-  background: #111827;
-  border-color: #475569;
+  opacity: 0.9;
 }
 
 .nav-button.active {
@@ -242,6 +240,88 @@
 }
 
 .settings-button:hover {
+  opacity: 0.9;
+}
+
+/* 벌크 삭제 관련 스타일 */
+.nav-button.delete-selected {
+  background: #DC2626;
+  color: white;
+  border-color: #DC2626;
+}
+
+.nav-button.delete-selected:hover {
+  opacity: 0.9;
+}
+
+.select-all-container {
+  padding: 12px 16px;
+  border-bottom: 1px solid #111827;
+  background: #0B1220;
+}
+
+.select-all-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #E5E7EB;
+}
+
+.select-all-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.select-all-text {
+  user-select: none;
+}
+
+.conversation-item.bulk-mode {
+  padding-left: 8px;
+}
+
+.conversation-checkbox {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.conversation-item.bulk-mode .conversation-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 스크롤바 커스터마이징 */
+.conversation-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.conversation-list::-webkit-scrollbar-track {
   background: #111827;
-  border-color: #475569;
+  border-radius: 4px;
+}
+
+.conversation-list::-webkit-scrollbar-thumb {
+  background: #4B5563;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.conversation-list::-webkit-scrollbar-thumb:hover {
+  background: #6B7280;
+}
+
+.conversation-list::-webkit-scrollbar-thumb:active {
+  background: #9CA3AF;
+}
+
+/* Firefox 스크롤바 */
+.conversation-list {
+  scrollbar-width: thin;
+  scrollbar-color: #4B5563 #111827;
 }

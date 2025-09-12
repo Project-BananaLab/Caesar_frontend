@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { isAdmin } from '../utils/auth'
-import '../styles/Sidebar.css'
+import { BsGear } from 'react-icons/bs'
+import { isAdmin } from '../entities/user/model/constants'
+import '../shared/ui/Sidebar.css'
 
 export default function Sidebar({ 
   conversations = [], 
@@ -17,6 +18,9 @@ export default function Sidebar({
   onChatSelect 
 }) {
   const [openMenuId, setOpenMenuId] = useState(null)
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false)
+  const [selectedChats, setSelectedChats] = useState(new Set())
+  const [selectAll, setSelectAll] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const menuRef = useRef(null)
@@ -75,10 +79,68 @@ export default function Sidebar({
   }
 
   const handleChatClick = (conv) => {
-    if (isAdminPage && onChatSelect) {
-      onChatSelect(conv.id)
-    } else if (onSelect) {
-      onSelect(conv.id)
+    if (bulkDeleteMode) {
+      toggleChatSelection(conv.id)
+    } else {
+      if (isAdminPage && onChatSelect) {
+        onChatSelect(conv.id)
+      } else if (onSelect) {
+        onSelect(conv.id)
+      }
+    }
+  }
+
+  // 벌크 삭제 모드 토글
+  const toggleBulkDeleteMode = () => {
+    setBulkDeleteMode(!bulkDeleteMode)
+    setSelectedChats(new Set())
+    setSelectAll(false)
+  }
+
+  // 개별 채팅 선택/해제
+  const toggleChatSelection = (chatId) => {
+    const newSelected = new Set(selectedChats)
+    if (newSelected.has(chatId)) {
+      newSelected.delete(chatId)
+    } else {
+      newSelected.add(chatId)
+    }
+    setSelectedChats(newSelected)
+    setSelectAll(newSelected.size === conversations.length)
+  }
+
+  // 전체 선택/해제
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedChats(new Set())
+      setSelectAll(false)
+    } else {
+      setSelectedChats(new Set(conversations.map(c => c.id)))
+      setSelectAll(true)
+    }
+  }
+
+  // 선택된 채팅들 삭제
+  const handleBulkDelete = () => {
+    if (selectedChats.size === 0) return
+    
+    const confirmMsg = `선택한 ${selectedChats.size}개의 대화를 삭제하시겠습니까?`
+    if (window.confirm(confirmMsg)) {
+      selectedChats.forEach(chatId => {
+        onDelete?.(chatId)
+      })
+      setBulkDeleteMode(false)
+      setSelectedChats(new Set())
+      setSelectAll(false)
+    }
+  }
+
+  // 이름 변경 (기존 이름으로 프리필)
+  const handleRename = (conv) => {
+    closeMenu()
+    const newTitle = window.prompt('새 제목을 입력하세요 (최대 20자):', conv.title)
+    if (newTitle !== null && newTitle.trim()) {
+      onRename?.(conv.id, newTitle.trim())
     }
   }
 
@@ -107,9 +169,25 @@ export default function Sidebar({
         </button>
         
         {!isAdminPage && (
-          <button onClick={onNewChat} className="nav-button new-chat">
-            + 새 대화
-          </button>
+          <>
+            <button onClick={onNewChat} className="nav-button new-chat">
+              + 새 대화
+            </button>
+            <button 
+              onClick={toggleBulkDeleteMode} 
+              className={`nav-button ${bulkDeleteMode ? 'active' : ''}`}
+            >
+              {bulkDeleteMode ? '취소' : '선택 삭제'}
+            </button>
+            {bulkDeleteMode && selectedChats.size > 0 && (
+              <button 
+                onClick={handleBulkDelete} 
+                className="nav-button delete-selected"
+              >
+                삭제 ({selectedChats.size})
+              </button>
+            )}
+          </>
         )}
         
         {isAdmin(user) && (
@@ -124,15 +202,41 @@ export default function Sidebar({
 
       {/* 채팅 목록 */}
       {!isAdminPage && (
-        <div className="conversation-list">
-          {conversations.length === 0 && (
-            <div className="no-conversations">대화가 없습니다.</div>
+        <>
+          {/* 전체 선택 체크박스 (벌크 삭제 모드에서만 표시) */}
+          {bulkDeleteMode && conversations.length > 0 && (
+            <div className="select-all-container">
+              <label className="select-all-checkbox">
+                <input 
+                  type="checkbox" 
+                  checked={selectAll}
+                  onChange={toggleSelectAll}
+                />
+                <span className="select-all-text">전체 선택</span>
+              </label>
+            </div>
           )}
+          
+          <div className="conversation-list">
+            {conversations.length === 0 && (
+              <div className="no-conversations">대화가 없습니다.</div>
+            )}
           {conversations.map(conv => (
             <div 
               key={conv.id}
-              className={`conversation-item ${conv.id === currentId ? 'active' : ''}`}
+              className={`conversation-item ${conv.id === currentId ? 'active' : ''} ${bulkDeleteMode ? 'bulk-mode' : ''}`}
             >
+              {/* 개별 체크박스 (벌크 삭제 모드에서만 표시) */}
+              {bulkDeleteMode && (
+                <input 
+                  type="checkbox" 
+                  className="conversation-checkbox"
+                  checked={selectedChats.has(conv.id)}
+                  onChange={() => toggleChatSelection(conv.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
+              
               <div 
                 className="conversation-content"
                 onClick={() => handleChatClick(conv)}
@@ -165,10 +269,7 @@ export default function Sidebar({
                   className="conversation-menu"
                 >
                   <button 
-                    onClick={() => { 
-                      closeMenu(); 
-                      onRename?.(conv.id) 
-                    }}
+                    onClick={() => handleRename(conv)}
                     className="menu-item"
                   >
                     이름변경
@@ -185,8 +286,9 @@ export default function Sidebar({
                 </div>
               )}
             </div>
-          ))}
-        </div>
+          )          )}
+          </div>
+        </>
       )}
 
       {/* 하단 설정 버튼 */}
@@ -196,10 +298,7 @@ export default function Sidebar({
           className="settings-button"
           title="설정"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" strokeWidth="2"/>
-            <path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 1 1 4 0v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a2 2 0 1 1 0 4h-.2a1 1 0 0 0-.9.6Z" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>
+          <BsGear size={16} color="white" />
           설정
         </button>
       </div>

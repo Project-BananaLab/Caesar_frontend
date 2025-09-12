@@ -1,19 +1,23 @@
 .admin-page {
   display: flex;
+  flex-direction: column;
   height: 100vh;
-  background: #0B1020;
+  background: #F9FAFB;
 }
 
 .admin-main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   background: #FFFFFF;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .admin-content {
+  flex: 1;
   padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  overflow-y: auto;
+  background: #F9FAFB;
 }
 
 .admin-header {
@@ -26,8 +30,8 @@
 }
 
 .admin-header h2 {
-  color: #1F2937;
-  font-size: 24px;
+  color: #111827;
+  font-size: 28px;
   font-weight: 700;
   margin: 0;
 }
@@ -38,16 +42,14 @@
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
 }
 
 .api-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  opacity: 0.9;
 }
 
 .api-button:disabled {
@@ -61,32 +63,32 @@
 }
 
 .file-upload-section h3 {
-  color: #374151;
-  font-size: 18px;
+  color: #111827;
+  font-size: 20px;
   font-weight: 600;
   margin-bottom: 16px;
 }
 
 .file-drop-zone {
-  background: #F8FAFC;
-  border: 2px dashed #A5B4FC;
-  padding: 48px 24px;
+  border: 2px dashed #D1D5DB;
   border-radius: 12px;
+  padding: 48px 24px;
   text-align: center;
+  background: #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   color: #6B7280;
 }
 
 .file-drop-zone:hover {
-  background: #F3F4F6;
-  border-color: #8B5CF6;
+  border-color: #667eea;
+  opacity: 0.95;
 }
 
 .file-drop-zone.dragging {
+  border-color: #667eea;
   background: #EEF2FF;
-  border-color: #6366F1;
-  color: #4338CA;
+  transform: scale(1.02);
 }
 
 .drop-icon {
@@ -95,19 +97,18 @@
 }
 
 .file-list-section {
-  background: white;
-  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
 }
 
 .file-list-header {
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr 1fr;
-  background: #F9FAFB;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr;
+  gap: 16px;
   padding: 16px 20px;
+  background: #F3F4F6;
   font-weight: 600;
   color: #374151;
   border-bottom: 1px solid #E5E7EB;
@@ -115,11 +116,13 @@
 
 .file-list-item {
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr;
+  gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid #F3F4F6;
   transition: background-color 0.2s ease;
-  color: #374151;
+  color: #111827;
+  font-weight: 500;
 }
 
 .file-list-item:hover {
@@ -131,22 +134,21 @@
 }
 
 .file-name-button {
-  background: transparent;
-  border: none;
-  color: #2563EB;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
+  background: none;
+  border: none;
+  color: #2563EB;
+  cursor: pointer;
   font-size: 14px;
-  padding: 0;
   text-align: left;
+  padding: 0;
   transition: color 0.2s ease;
 }
 
 .file-name-button:hover {
-  color: #1D4ED8;
-  text-decoration: underline;
+  opacity: 0.8;
 }
 
 .file-emoji {
@@ -158,14 +160,14 @@
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-top: 24px;
+  margin-top: 32px;
 }
 
 .pagination-button {
   padding: 8px 16px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
-  background: white;
+  background: #FFFFFF;
   color: #374151;
   cursor: pointer;
   font-size: 14px;
@@ -173,24 +175,41 @@
 }
 
 .pagination-button:hover:not(:disabled) {
-  background: #F3F4F6;
-  border-color: #9CA3AF;
+  opacity: 0.9;
 }
 
 .pagination-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #F9FAFB;
 }
 
 .pagination-info {
-  color: #6B7280;
   font-size: 14px;
+  color: #6B7280;
   font-weight: 500;
 }
 
 /* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .file-list-header,
+  .file-list-item {
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+  }
+  
+  .file-list-header > div:nth-child(3),
+  .file-list-header > div:nth-child(4),
+  .file-list-item > div:nth-child(3),
+  .file-list-item > div:nth-child(4) {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
+  .admin-page {
+    flex-direction: column;
+  }
+  
   .admin-content {
     padding: 16px;
   }
@@ -201,19 +220,13 @@
     align-items: stretch;
   }
   
+  .file-drop-zone {
+    padding: 32px 16px;
+  }
+  
   .file-list-header,
   .file-list-item {
     grid-template-columns: 1fr;
     gap: 8px;
-  }
-  
-  .file-list-header {
-    display: none;
-  }
-  
-  .file-list-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
   }
 }

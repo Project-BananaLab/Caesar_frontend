@@ -1,11 +1,10 @@
 import React, { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import Sidebar from '../components/Sidebar'
-import LoadingBar from '../components/LoadingBar'
-import PreviewPanel from '../components/PreviewPanel'
-import IntegrationModal from '../components/IntegrationModal'
-import SettingsModal from '../components/SettingsModal'
-import '../styles/AdminPage.css'
+import AdminHeader from '../widgets/AdminHeader'
+import LoadingBar from '../widgets/LoadingBar'
+import PreviewPanel from '../widgets/PreviewPanel'
+import IntegrationModal from '../widgets/IntegrationModal'
+import SettingsModal from '../widgets/SettingsModal'
+import '../shared/ui/AdminPage.css'
 
 const dummyFiles = Array.from({ length: 25 }, (_, i) => ({
   id: i + 1,
@@ -20,7 +19,9 @@ const dummyFiles = Array.from({ length: 25 }, (_, i) => ({
 
 const typeEmoji = { pdf:'📄', docx:'📝', xlsx:'📊', pptx:'📈', png:'🖼️', jpg:'🖼️' }
 
-const ITEMS_PER_PAGE = 10
+import { ADMIN_PAGE_SIZE } from '../shared/config/app'
+
+const ITEMS_PER_PAGE = ADMIN_PAGE_SIZE
 
 export default function AdminPage({ user, onLogout }) {
   const [isDragging, setDragging] = useState(false)
@@ -30,7 +31,6 @@ export default function AdminPage({ user, onLogout }) {
   const [openIntegrations, setOpenIntegrations] = useState(false)
   const [openSettings, setOpenSettings] = useState(false)
   const inputRef = useRef(null)
-  const navigate = useNavigate()
 
   // 페이징 계산
   const totalPages = Math.ceil(dummyFiles.length / ITEMS_PER_PAGE)
@@ -56,22 +56,13 @@ export default function AdminPage({ user, onLogout }) {
     }
   }
 
-  const handleChatNavigation = (chatId) => {
-    // 채팅으로 이동 (실제 구현시 채팅 ID를 사용)
-    navigate(`/?chat=${chatId}`)
-  }
 
   return (
     <div className="admin-page">
-      <Sidebar
-        conversations={[]} // 관리자 페이지에서는 채팅 목록 비우기
-        onNewChat={() => navigate('/')}
-        currentId=""
-        user={user}
-        onLogout={onLogout}
-        onOpenSettings={() => setOpenSettings(true)}
-        isAdminPage={true}
-        onChatSelect={handleChatNavigation}
+      <AdminHeader 
+        user={user} 
+        onLogout={onLogout} 
+        onOpenSettings={() => setOpenSettings(true)} 
       />
       
       <div className="admin-main">

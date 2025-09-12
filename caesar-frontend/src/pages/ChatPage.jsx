@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react'
-import Sidebar from '../components/Sidebar'
-import Header from '../components/Header'
-import MessageList from '../components/MessageList'
-import Composer from '../components/Composer'
-import TypingIndicator from '../components/TypingIndicator'
-import PreviewPanel from '../components/PreviewPanel'
-import SettingsModal from '../components/SettingsModal'
-import IntegrationModal from '../components/IntegrationModal'
+import Sidebar from '../widgets/Sidebar'
+import Header from '../widgets/Header'
+import MessageList from '../widgets/MessageList'
+import Composer from '../widgets/Composer'
+import TypingIndicator from '../widgets/TypingIndicator'
+import PreviewPanel from '../widgets/PreviewPanel'
+import SettingsModal from '../widgets/SettingsModal'
+import IntegrationModal from '../widgets/IntegrationModal'
 import { 
   saveConversations, 
   loadConversations, 
   saveCurrentChatId, 
   loadCurrentChatId
-} from '../utils/auth'
-import agentService from '../services/agentService'
-import '../styles/ChatPage.css'
+} from '../entities/conversation/model/storage'
+import agentService from '../shared/api/agentService'
+import '../shared/ui/ChatPage.css'
 
-const MAX_CONVERSATIONS = 30
+import { MAX_CONVERSATIONS } from '../entities/conversation/model/constants'
 
 export default function ChatPage({ user, onLogout, onAgentModeChange }) {
   const [input, setInput] = useState('')
@@ -123,12 +123,11 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
     }
   }
 
-  // 대화 이름 변경
-  function renameChat(id) {
-    const title = window.prompt('새 제목을 입력하세요 (최대 20자):')
-    if (!title) return
+  // 대화 이름 변경 (새로운 제목을 매개변수로 받음)
+  function renameChat(id, newTitle) {
+    if (!newTitle || !newTitle.trim()) return
     
-    const truncatedTitle = title.length > 20 ? title.substring(0, 20) : title
+    const truncatedTitle = newTitle.length > 20 ? newTitle.substring(0, 20) : newTitle
     setConversations(list => {
       const updated = list.map(c => c.id === id ? { ...c, title: truncatedTitle } : c)
       if (user?.username) {

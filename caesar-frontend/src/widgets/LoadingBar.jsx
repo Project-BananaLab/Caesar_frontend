@@ -1,5 +1,5 @@
 import React from 'react'
-import '../styles/LoadingBar.css'
+import '../shared/ui/LoadingBar.css'
 
 export default function LoadingBar({ isVisible, message = '로딩 중...' }) {
   if (!isVisible) return null

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import llmService from '../services/llmService.js'
+import llmService from '../shared/api/llmService.js'
 import LoadingModal from './LoadingModal'
 
 export default function Header({ 
@@ -105,7 +105,7 @@ export default function Header({
               color: agentStatus.connected ? '#10B981' : '#EF4444',
               fontWeight: 500
             }}>
-              {agentStatus.connected ? '🤖 연결됨' : '❌ 연결 실패'}
+              {agentStatus.connected ? '🤖 연결됨' : '❌연결 실패'}
             </span>
           )}
         </div>

@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
-import { getUserRole } from '../utils/auth'
-import '../styles/Login.css'
+import { FaEye, FaEyeSlash } from 'react-icons/fa6'
+import { getUserRole } from '../entities/user/model/constants'
+import '../shared/ui/Login.css'
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
 
   // 더미 로그인 데이터
@@ -13,6 +15,27 @@ export default function Login({ onLogin }) {
     { username: 'user', password: 'user123' },
     { username: 'caesar', password: 'caesar2024' }
   ]
+
+  // 아이디 영어만 입력 처리
+  const handleUsernameChange = (e) => {
+    const value = e.target.value
+    // 영어와 숫자만 허용
+    const englishOnly = value.replace(/[^a-zA-Z0-9]/g, '')
+    setUsername(englishOnly.trim())
+  }
+
+  // 비밀번호 영어만 입력 처리
+  const handlePasswordChange = (e) => {
+    const value = e.target.value
+    // 영어, 숫자, 특수문자만 허용 (한글 제외)
+    const englishOnly = value.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
+    setPassword(englishOnly.trim())
+  }
+
+  // 비밀번호 보이기/숨기기 토글
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -45,7 +68,7 @@ export default function Login({ onLogin }) {
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value.trim())}
+              onChange={handleUsernameChange}
               placeholder="아이디를 입력하세요"
               className="form-input"
               required
@@ -54,14 +77,31 @@ export default function Login({ onLogin }) {
 
           <div className="form-group">
             <label className="form-label">비밀번호</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value.trim())}
-              placeholder="비밀번호를 입력하세요"
-              className="form-input"
-              required
-            />
+            <div className="password-input-container">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={handlePasswordChange}
+                placeholder="비밀번호를 입력하세요"
+                className="form-input password-input"
+                required
+              />
+              <span
+                onClick={togglePasswordVisibility}
+                className="password-toggle-button"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    togglePasswordVisibility()
+                  }
+                }}
+                aria-label="비밀번호 보이기/숨기기"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
           </div>
 
           {error && (
@@ -76,7 +116,6 @@ export default function Login({ onLogin }) {
         </form>
 
         <div className="test-accounts">
-          <hr />
           <div className="test-accounts-title">테스트 계정:</div>
           <div>아이디: admin / 비밀번호: admin123 (관리자)</div>
           <div>아이디: user / 비밀번호: user123 (일반유저)</div>
