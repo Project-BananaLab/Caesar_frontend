@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { BsGear } from 'react-icons/bs'
 import { isAdmin } from '../entities/user/model/constants'
+import { loadTrashConversations } from '../entities/conversation/model/storage'
+import TrashModal from './TrashModal'
 import '../shared/ui/Sidebar.css'
 
 export default function Sidebar({ 
@@ -15,12 +17,18 @@ export default function Sidebar({
   onLogout, 
   onOpenSettings,
   isAdminPage = false,
-  onChatSelect 
+  onChatSelect,
+  onSearchInChat,
+  onRestore 
 }) {
   const [openMenuId, setOpenMenuId] = useState(null)
-  const [bulkDeleteMode, setBulkDeleteMode] = useState(false)
-  const [selectedChats, setSelectedChats] = useState(new Set())
-  const [selectAll, setSelectAll] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [openTrashMenu, setOpenTrashMenu] = useState(null)
+  const [openTrashModal, setOpenTrashModal] = useState(false)
+  const [trashCount, setTrashCount] = useState(0)
+  const CONVERSATIONS_PER_PAGE = 10
+  const trashMenuRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
   const menuRef = useRef(null)
@@ -40,13 +48,16 @@ export default function Sidebar({
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         closeMenu()
       }
+      if (trashMenuRef.current && !trashMenuRef.current.contains(event.target)) {
+        setOpenTrashMenu(null)
+      }
     }
 
-    if (openMenuId) {
+    if (openMenuId || openTrashMenu) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [openMenuId])
+  }, [openMenuId, openTrashMenu])
 
   // 채팅 제목 툴팁 표시
   const getTitleDisplay = (title) => {
@@ -79,61 +90,20 @@ export default function Sidebar({
   }
 
   const handleChatClick = (conv) => {
-    if (bulkDeleteMode) {
-      toggleChatSelection(conv.id)
-    } else {
-      if (isAdminPage && onChatSelect) {
-        onChatSelect(conv.id)
-      } else if (onSelect) {
-        onSelect(conv.id)
+    if (isAdminPage && onChatSelect) {
+      onChatSelect(conv.id)
+    } else if (onSelect) {
+      onSelect(conv.id)
+      
+      // 검색어가 있고 대화 내용에서 검색된 경우 채팅에 검색어 전달
+      if (searchQuery && conv._searchMatch === 'content' && onSearchInChat) {
+        onSearchInChat(searchQuery)
+      } else if (onSearchInChat) {
+        onSearchInChat('') // 검색어 초기화
       }
     }
   }
 
-  // 벌크 삭제 모드 토글
-  const toggleBulkDeleteMode = () => {
-    setBulkDeleteMode(!bulkDeleteMode)
-    setSelectedChats(new Set())
-    setSelectAll(false)
-  }
-
-  // 개별 채팅 선택/해제
-  const toggleChatSelection = (chatId) => {
-    const newSelected = new Set(selectedChats)
-    if (newSelected.has(chatId)) {
-      newSelected.delete(chatId)
-    } else {
-      newSelected.add(chatId)
-    }
-    setSelectedChats(newSelected)
-    setSelectAll(newSelected.size === conversations.length)
-  }
-
-  // 전체 선택/해제
-  const toggleSelectAll = () => {
-    if (selectAll) {
-      setSelectedChats(new Set())
-      setSelectAll(false)
-    } else {
-      setSelectedChats(new Set(conversations.map(c => c.id)))
-      setSelectAll(true)
-    }
-  }
-
-  // 선택된 채팅들 삭제
-  const handleBulkDelete = () => {
-    if (selectedChats.size === 0) return
-    
-    const confirmMsg = `선택한 ${selectedChats.size}개의 대화를 삭제하시겠습니까?`
-    if (window.confirm(confirmMsg)) {
-      selectedChats.forEach(chatId => {
-        onDelete?.(chatId)
-      })
-      setBulkDeleteMode(false)
-      setSelectedChats(new Set())
-      setSelectAll(false)
-    }
-  }
 
   // 이름 변경 (기존 이름으로 프리필)
   const handleRename = (conv) => {
@@ -142,6 +112,79 @@ export default function Sidebar({
     if (newTitle !== null && newTitle.trim()) {
       onRename?.(conv.id, newTitle.trim())
     }
+  }
+
+  // 검색 및 페이징 처리 - 제목, 미리보기, 대화 내용 모두 검색
+  const filteredConversations = conversations.filter(conv => {
+    const query = searchQuery.toLowerCase()
+    
+    if (!query.trim()) return true // 검색어가 없으면 모든 대화 표시
+    
+    // 제목에서 검색
+    if (conv.title.toLowerCase().includes(query)) {
+      conv._searchMatch = 'title'
+      return true
+    }
+    
+    // 미리보기에서 검색
+    if (conv.preview.toLowerCase().includes(query)) {
+      conv._searchMatch = 'preview'
+      return true
+    }
+    
+    // 대화 내용에서 검색
+    if (conv.messages && conv.messages.length > 0) {
+      const foundInContent = conv.messages.some(message => 
+        message.text && message.text.toLowerCase().includes(query)
+      )
+      if (foundInContent) {
+        conv._searchMatch = 'content'
+        return true
+      }
+    }
+    
+    return false
+  })
+  
+  const totalPages = Math.ceil(filteredConversations.length / CONVERSATIONS_PER_PAGE)
+  const startIndex = (currentPage - 1) * CONVERSATIONS_PER_PAGE
+  const paginatedConversations = filteredConversations.slice(startIndex, startIndex + CONVERSATIONS_PER_PAGE)
+
+  // 검색어 변경 시 페이지 리셋
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
+
+  // 휴지통 개수 로드
+  useEffect(() => {
+    if (user?.username) {
+      const trashConversations = loadTrashConversations(user.username)
+      setTrashCount(trashConversations.length)
+    }
+  }, [user, conversations])
+
+  // 대화 목록 순서가 실제로 변경되었을 때만 첫 페이지로 이동
+  const [lastFirstConversationId, setLastFirstConversationId] = useState(null)
+  
+  useEffect(() => {
+    if (conversations.length > 0) {
+      const currentFirstId = conversations[0]?.id
+      
+      // 첫 번째 대화가 바뀌었고, 이전에 첫 번째 대화가 있었다면 (순서 변경)
+      if (lastFirstConversationId && currentFirstId !== lastFirstConversationId) {
+        setCurrentPage(1)
+      }
+      
+      setLastFirstConversationId(currentFirstId)
+    }
+  }, [conversations, lastFirstConversationId])
+
+  // 검색어 하이라이트 함수
+  const highlightSearchTerm = (text, searchTerm) => {
+    if (!searchTerm.trim()) return text
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+    return text.replace(regex, '<mark style="background: #FEF08A; color: #92400E;">$1</mark>')
   }
 
   return (
@@ -173,20 +216,6 @@ export default function Sidebar({
             <button onClick={onNewChat} className="nav-button new-chat">
               + 새 대화
             </button>
-            <button 
-              onClick={toggleBulkDeleteMode} 
-              className={`nav-button ${bulkDeleteMode ? 'active' : ''}`}
-            >
-              {bulkDeleteMode ? '취소' : '선택 삭제'}
-            </button>
-            {bulkDeleteMode && selectedChats.size > 0 && (
-              <button 
-                onClick={handleBulkDelete} 
-                className="nav-button delete-selected"
-              >
-                삭제 ({selectedChats.size})
-              </button>
-            )}
           </>
         )}
         
@@ -203,39 +232,40 @@ export default function Sidebar({
       {/* 채팅 목록 */}
       {!isAdminPage && (
         <>
-          {/* 전체 선택 체크박스 (벌크 삭제 모드에서만 표시) */}
-          {bulkDeleteMode && conversations.length > 0 && (
-            <div className="select-all-container">
-              <label className="select-all-checkbox">
-                <input 
-                  type="checkbox" 
-                  checked={selectAll}
-                  onChange={toggleSelectAll}
-                />
-                <span className="select-all-text">전체 선택</span>
-              </label>
-            </div>
-          )}
           
+          {/* 검색 바 */}
+          <div className="search-container">
+            <div className="search-input-wrapper">
+              <input
+                type="text"
+                placeholder="제목, 내용으로 대화 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="search-clear-button"
+                  title="검색어 지우기"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="conversation-list">
-            {conversations.length === 0 && (
-              <div className="no-conversations">대화가 없습니다.</div>
+            {filteredConversations.length === 0 && (
+              <div className="no-conversations">
+                {searchQuery ? `"${searchQuery}"에 대한 검색 결과가 없습니다.` : '대화가 없습니다.'}
+              </div>
             )}
-          {conversations.map(conv => (
+          {paginatedConversations.map(conv => (
             <div 
               key={conv.id}
-              className={`conversation-item ${conv.id === currentId ? 'active' : ''} ${bulkDeleteMode ? 'bulk-mode' : ''}`}
+              className={`conversation-item ${conv.id === currentId ? 'active' : ''} ${openMenuId === conv.id ? 'menu-open' : ''}`}
             >
-              {/* 개별 체크박스 (벌크 삭제 모드에서만 표시) */}
-              {bulkDeleteMode && (
-                <input 
-                  type="checkbox" 
-                  className="conversation-checkbox"
-                  checked={selectedChats.has(conv.id)}
-                  onChange={() => toggleChatSelection(conv.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              )}
               
               <div 
                 className="conversation-content"
@@ -243,16 +273,39 @@ export default function Sidebar({
                 title={conv.title.length > 20 ? conv.title : undefined}
               >
                 <div className="conversation-header">
-                  <div className="conversation-title">
-                    {getTitleDisplay(conv.title)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div 
+                      className="conversation-title"
+                      dangerouslySetInnerHTML={{
+                        __html: highlightSearchTerm(getTitleDisplay(conv.title), searchQuery)
+                      }}
+                    />
+                    {searchQuery && conv._searchMatch === 'content' && (
+                      <span 
+                        style={{
+                          fontSize: '10px',
+                          background: '#3B82F6',
+                          color: 'white',
+                          padding: '2px 4px',
+                          borderRadius: '4px',
+                          fontWeight: '500'
+                        }}
+                        title="대화 내용에서 검색됨"
+                      >
+                        내용
+                      </span>
+                    )}
                   </div>
                   <div className="conversation-time">
                     {formatTime(conv.lastMessageTime)}
                   </div>
                 </div>
-                <div className="conversation-preview">
-                  {conv.preview}
-                </div>
+                <div 
+                  className="conversation-preview"
+                  dangerouslySetInnerHTML={{
+                    __html: highlightSearchTerm(conv.preview, searchQuery)
+                  }}
+                />
               </div>
               
               <button 
@@ -261,34 +314,111 @@ export default function Sidebar({
                 aria-label="메뉴"
               >
                 ⋯
+                {openMenuId === conv.id && (
+                  <div 
+                    ref={menuRef}
+                    className="conversation-menu"
+                  >
+                    <button 
+                      onClick={() => handleRename(conv)}
+                      className="menu-item"
+                    >
+                      이름변경
+                    </button>
+                    <button 
+                      onClick={() => { 
+                        closeMenu(); 
+                        onDelete?.(conv.id) 
+                      }}
+                      className="menu-item delete"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                )}
               </button>
-
-              {openMenuId === conv.id && (
-                <div 
-                  ref={menuRef}
-                  className="conversation-menu"
-                >
-                  <button 
-                    onClick={() => handleRename(conv)}
-                    className="menu-item"
-                  >
-                    이름변경
-                  </button>
-                  <button 
-                    onClick={() => { 
-                      closeMenu(); 
-                      onDelete?.(conv.id) 
-                    }}
-                    className="menu-item delete"
-                  >
-                    삭제
-                  </button>
-                </div>
-              )}
             </div>
           )          )}
           </div>
+
+          {/* 페이징 */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="pagination-button"
+              >
+                이전
+              </button>
+              
+              <span className="pagination-info">
+                {currentPage} / {totalPages}
+              </span>
+              
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="pagination-button"
+              >
+                다음
+              </button>
+            </div>
+          )}
         </>
+      )}
+
+      {/* 휴지통 메뉴 */}
+      {!isAdminPage && (
+        <div className="trash-section">
+          <div 
+            className="trash-menu-container"
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpenTrashMenu(openTrashMenu ? null : 'trash')
+            }}
+          >
+            <div className="trash-button">
+              <span>🗑️ 휴지통</span>
+              {trashCount > 0 && (
+                <span className="trash-count">{trashCount}</span>
+              )}
+            </div>
+            
+            {openTrashMenu === 'trash' && (
+              <div ref={trashMenuRef} className="trash-menu">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setOpenTrashModal(true)
+                    setOpenTrashMenu(null)
+                  }}
+                  className="trash-menu-item"
+                >
+                  관리
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (trashCount === 0) {
+                      alert('휴지통이 비어있습니다.')
+                      return
+                    }
+                    if (window.confirm(`휴지통의 모든 대화(${trashCount}개)를 영구적으로 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+                      // 휴지통 비우기 로직은 TrashModal에서 처리
+                      setOpenTrashModal(true)
+                    }
+                    setOpenTrashMenu(null)
+                  }}
+                  className="trash-menu-item delete"
+                  disabled={trashCount === 0}
+                >
+                  비우기
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* 하단 설정 버튼 */}
@@ -302,6 +432,23 @@ export default function Sidebar({
           설정
         </button>
       </div>
+      
+      {/* 휴지통 관리 모달 */}
+      <TrashModal
+        open={openTrashModal}
+        onClose={() => setOpenTrashModal(false)}
+        user={user}
+        currentConversationsCount={conversations.length}
+        onRestore={(restoredConversation) => {
+          // 복구된 대화를 부모 컴포넌트에 알림
+          if (onRestore) {
+            onRestore(restoredConversation)
+          }
+          // 휴지통 개수 업데이트
+          const trashConversations = loadTrashConversations(user.username)
+          setTrashCount(trashConversations.length)
+        }}
+      />
     </aside>
   )
 }

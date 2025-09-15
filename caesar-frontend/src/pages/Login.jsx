@@ -69,7 +69,7 @@ export default function Login({ onLogin }) {
               type="text"
               value={username}
               onChange={handleUsernameChange}
-              placeholder="아이디를 입력하세요"
+              placeholder="아이디를 입력하세요 (영어+숫자)"
               className="form-input"
               required
             />
@@ -82,7 +82,7 @@ export default function Login({ onLogin }) {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={handlePasswordChange}
-                placeholder="비밀번호를 입력하세요"
+                placeholder="비밀번호를 입력하세요 (영어+숫자+특수문자)"
                 className="form-input password-input"
                 required
               />
