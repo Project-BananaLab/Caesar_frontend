@@ -13,7 +13,7 @@ export default function LoadingModal({
     <div className="loading-modal-overlay">
       <div className="loading-modal">
         <div className="loading-spinner"></div>
-        <p className="loading-message">{message}</p>
+        <p className="loading-message" style={{ color: '#111827', fontWeight: '700' }}>{message}</p>
         {showProgress && (
           <div className="loading-progress">
             <div 
