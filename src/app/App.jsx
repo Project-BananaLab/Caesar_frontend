@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { saveAuthData, loadAuthData, clearAuthData, isAdmin } from './utils/auth'
-import Login from './pages/Login'
-import ChatPage from './pages/ChatPage'
-import AdminPage from './pages/AdminPage'
-import LoadingModal from './components/LoadingModal'
-import './styles/App.css'
+import { saveAuthData, loadAuthData, clearAuthData } from '../entities/user/model/auth'
+import { isAdmin } from '../entities/user/model/constants'
+import Login from '../pages/Login'
+import ChatPage from '../pages/ChatPage'
+import AdminPage from '../pages/AdminPage'
+import LoadingModal from '../widgets/LoadingModal'
+import '../shared/ui/App.css'
 
 // 보호된 라우트 컴포넌트
 function ProtectedRoute({ children, requireAdmin = false }) {
@@ -27,7 +28,8 @@ function PublicRoute({ children }) {
   const authData = loadAuthData()
   
   if (authData) {
-    return <Navigate to="/" replace />
+    // 관리자는 관리자 페이지로, 일반 사용자는 채팅 페이지로 이동
+    return <Navigate to={isAdmin(authData) ? '/admin' : '/'} replace />
   }
   
   return children
@@ -61,8 +63,12 @@ function AppContent() {
     setIsAuthenticated(true)
     saveAuthData(authData)
     
-    // 로그인 후 메인 페이지로 이동
-    navigate('/')
+    // 관리자는 관리자 페이지로, 일반 사용자는 채팅 페이지로 이동
+    if (isAdmin(authData)) {
+      navigate('/admin')
+    } else {
+      navigate('/')
+    }
   }
 
   // 로그아웃 처리
