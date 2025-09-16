@@ -100,7 +100,7 @@ export default function IntegrationModal({ open, onClose }) {
           borderBottom: '1px solid #E5E7EB',
           background: '#F8FAFC'
         }}>
-          <h2 style={{ fontSize: 20, fontWeight: 'bold', margin: 0 }}>API 연동 관리</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 'bold', margin: 0, color: '#111827' }}>API 연동 관리</h2>
           <button onClick={onClose} style={{
             padding: '8px 12px',
             border: '1px solid #D1D5DB',
@@ -127,8 +127,8 @@ export default function IntegrationModal({ open, onClose }) {
                   borderRadius: 8
                 }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{service.name}</h3>
-                    <p style={{ margin: '4px 0 0 0', fontSize: 14, color: '#6B7280' }}>{service.description}</p>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>{service.name}</h3>
+                    <p style={{ margin: '4px 0 0 0', fontSize: 14, color: '#374151', fontWeight: 500 }}>{service.description}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span style={{

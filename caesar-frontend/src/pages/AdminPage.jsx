@@ -43,6 +43,8 @@ const typeEmoji = {
 }
 
 import { ADMIN_PAGE_SIZE } from '../shared/config/app'
+import { MdOutlineFileDownload } from "react-icons/md"
+import { FaRegTrashCan } from "react-icons/fa6"
 
 const ITEMS_PER_PAGE = ADMIN_PAGE_SIZE
 
@@ -68,13 +70,7 @@ export default function AdminPage({ user, onLogout }) {
   const loadFiles = () => {
     try {
       const loadedFiles = fileService.getFiles()
-      if (loadedFiles.length === 0) {
-        // 초기 더미 데이터 생성 (개발용)
-        fileService.initializeDummyData()
-        setFiles(fileService.getFiles())
-      } else {
-        setFiles(loadedFiles)
-      }
+      setFiles(loadedFiles)
     } catch (error) {
       console.error('파일 로드 실패:', error)
       setFiles([])
@@ -392,21 +388,40 @@ export default function AdminPage({ user, onLogout }) {
                     </div>
                   </div>
                   <div className="upload-date">{formatDate(f.createdAt)}</div>
-                  <div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button
+                      onClick={() => fileService.downloadFile(f)}
+                      style={{
+                        padding: '4px 8px',
+                        background: 'transparent',
+                        border: '1px solid #D1D5DB',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      title="파일 다운로드"
+                    >
+                      <MdOutlineFileDownload />
+                    </button>
                     <button
                       onClick={() => handleDeleteFile(f.id, f.name)}
                       style={{
                         padding: '4px 8px',
-                        background: '#EF4444',
-                        color: 'white',
-                        border: 'none',
+                        background: 'transparent',
+                        border: '1px solid #D1D5DB',
                         borderRadius: '4px',
                         cursor: 'pointer',
-                        fontSize: '12px'
+                        fontSize: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                       title="파일 삭제"
                     >
-                      삭제
+                      <FaRegTrashCan />
                     </button>
                   </div>
                 </div>

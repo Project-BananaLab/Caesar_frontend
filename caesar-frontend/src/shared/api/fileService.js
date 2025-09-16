@@ -176,38 +176,52 @@ class FileService {
     return codeExtensions.includes(extension.toLowerCase())
   }
 
-  // 초기 더미 데이터 생성 (개발용) - 다양한 파일 형식 예시
-  initializeDummyData() {
-    const existingFiles = this.getFiles()
-    if (existingFiles.length > 0) return // 이미 데이터가 있으면 스킵
+  // 파일 다운로드
+  downloadFile(file) {
+    try {
+      // Base64 데이터 URL을 Blob으로 변환
+      const response = fetch(file.url)
+      response.then(res => res.blob()).then(blob => {
+        // 임시 다운로드 링크 생성
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = downloadUrl
+        link.download = file.name
+        
+        // 링크 클릭하여 다운로드 시작
+        document.body.appendChild(link)
+        link.click()
+        
+        // 정리
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(downloadUrl)
+      }).catch(error => {
+        console.error('다운로드 실패:', error)
+        // Base64 데이터 URL을 직접 사용하는 대체 방법
+        const link = document.createElement('a')
+        link.href = file.url
+        link.download = file.name
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
+      
+      return true
+    } catch (error) {
+      console.error('파일 다운로드 실패:', error)
+      return false
+    }
+  }
 
-    const sampleExtensions = ['pdf', 'docx', 'xlsx', 'pptx', 'png', 'jpg', 'hwp', 'txt', 'mp4', 'zip']
-    const sampleTypes = [
-      'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'image/png', 'image/jpeg', 'application/x-hwp', 'text/plain', 'video/mp4', 'application/zip'
-    ]
-    const sampleReasons = ['참고자료', '업무문서', '회의자료', '발표자료', '이미지', '동영상', '압축파일', '한글문서', '텍스트', '참고자료']
-    
-    const dummyFiles = Array.from({ length: 15 }, (_, i) => {
-      const ext = sampleExtensions[i % sampleExtensions.length]
-      return {
-        id: i + 1,
-        name: `샘플파일_${i + 1}.${ext}`,
-        size: Math.floor(Math.random() * 5000000) + 100000, // 100KB ~ 5MB
-        type: sampleTypes[i % sampleTypes.length],
-        extension: ext,
-        reason: sampleReasons[i % sampleReasons.length],
-        owner: ['홍길동', '김영희', '이철수', '박민수', '최디자', '이개발', '박디자인', '김분석'][i % 8],
-        location: ['/docs/hr', '/docs/okr', '/reports/2025', '/slides', '/assets', '/media', '/archive', '/code'][i % 8],
-        url: `https://via.placeholder.com/400x300/667eea/ffffff?text=Sample+${i + 1}`, // 플레이스홀더 이미지
-        createdAt: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString(),
-        lastModified: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString()
-      }
-    })
-
-    this.saveFiles(dummyFiles)
+  // 로컬 스토리지 데이터 초기화 (필요시)
+  clearAllFiles() {
+    try {
+      localStorage.removeItem(this.storageKey)
+      return true
+    } catch (error) {
+      console.error('파일 데이터 초기화 실패:', error)
+      return false
+    }
   }
 }
 
