@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react'
+import SimpleCalendarButton from './SimpleCalendarButton'
+import SimpleCalendarDisplay from './SimpleCalendarDisplay'
 
 export default function SettingsModal({ open, onClose }) {
   useEffect(() => {
@@ -56,6 +58,31 @@ export default function SettingsModal({ open, onClose }) {
                 </div>
               </section>
             ))}
+
+            {/* 구글 캘린더 섹션 */}
+            <section style={{ marginBottom: 16 }}>
+              <div style={{ 
+                fontWeight: 'bold', 
+                color: '#111827', 
+                marginBottom: 12,
+                fontSize: '16px'
+              }}>
+                📅 구글 캘린더
+              </div>
+              
+              <div style={{ marginBottom: '16px' }}>
+                <SimpleCalendarButton
+                  onSuccess={(events) => {
+                    alert(`캘린더 연결 성공! 오늘 일정 ${events.length}개를 찾았습니다.`)
+                  }}
+                  onError={(error) => {
+                    alert('캘린더 연결 실패: ' + error.message)
+                  }}
+                />
+              </div>
+              
+              <SimpleCalendarDisplay />
+            </section>
 
         </div>
       </div>
