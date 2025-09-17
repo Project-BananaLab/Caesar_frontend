@@ -13,7 +13,8 @@ export default function TrashModal({
   onClose, 
   user, 
   currentConversationsCount,
-  onRestore 
+  onRestore,
+  onTrashUpdate
 }) {
   const [trashConversations, setTrashConversations] = useState([])
   const [loading, setLoading] = useState(false)
@@ -23,6 +24,22 @@ export default function TrashModal({
       loadTrashData()
     }
   }, [open, user])
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    if (open) {
+      document.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onClose])
 
   const loadTrashData = () => {
     const trashData = loadTrashConversations(user.username)
@@ -70,6 +87,7 @@ export default function TrashModal({
       const success = permanentDeleteFromTrash(conversationId, user.username)
       if (success) {
         loadTrashData()
+        onTrashUpdate?.() // 휴지통 개수 업데이트 알림
         alert('대화가 영구적으로 삭제되었습니다.')
       } else {
         alert('삭제에 실패했습니다.')
@@ -87,6 +105,7 @@ export default function TrashModal({
       const success = clearTrash(user.username)
       if (success) {
         setTrashConversations([])
+        onTrashUpdate?.() // 휴지통 개수 업데이트 알림
         alert('휴지통이 비워졌습니다.')
       } else {
         alert('휴지통 비우기에 실패했습니다.')
@@ -100,7 +119,7 @@ export default function TrashModal({
     <div className="modal-overlay">
       <div className="modal-content trash-modal">
         <div className="modal-header">
-          <h3>휴지통 관리</h3>
+          <h3>휴지통 관리 ({trashConversations.length}개)</h3>
           <div className="modal-header-actions">
             <button 
               onClick={handleClearTrash}

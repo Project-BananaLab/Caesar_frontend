@@ -121,6 +121,41 @@
   margin-bottom: 1rem;
 }
 
+/* 구글 로그인 관련 스타일 */
+.login-divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E5E7EB;
+}
+
+.login-divider span {
+  padding: 0 1rem;
+  color: #6B7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.google-login-section {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.google-login-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
 /* 비밀번호 입력 컸테이너 */
 .password-input-container {
   position: relative;
