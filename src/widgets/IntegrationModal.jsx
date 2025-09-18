@@ -11,6 +11,22 @@ export default function IntegrationModal({ open, onClose }) {
     }
   }, [open])
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    if (open) {
+      document.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onClose])
+
   async function loadIntegrations() {
     setLoading(true)
     try {
@@ -71,6 +87,7 @@ export default function IntegrationModal({ open, onClose }) {
       setConnecting(null)
     }
   }
+
 
   if (!open) return null
 

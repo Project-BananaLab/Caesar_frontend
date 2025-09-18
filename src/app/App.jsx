@@ -53,10 +53,13 @@ function AppContent() {
 
   // 로그인 처리
   const handleLogin = (loginData) => {
+    console.log('로그인 처리:', loginData)
+    
     const authData = {
       ...loginData,
       loginTime: new Date().toISOString(),
-      role: isAdmin(loginData) ? 'admin' : 'user'
+      type: loginData.type || 'admin', // 구글 로그인이면 'google', 아니면 'admin'
+      role: loginData.type === 'google' ? 'user' : (isAdmin(loginData) ? 'admin' : 'user')
     }
     
     setUser(authData)

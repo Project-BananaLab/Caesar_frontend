@@ -126,6 +126,7 @@
   color: #374151;
   font-size: 14px;
   border-bottom: 1px solid #E5E7EB;
+  text-align: center;
 }
 
 .trash-list-item {
@@ -136,6 +137,18 @@
   border-bottom: 1px solid #F3F4F6;
   transition: background-color 0.2s ease;
   align-items: center;
+}
+
+.trash-list-item .conversation-title {
+  text-align: left;
+}
+
+.trash-list-item .conversation-date {
+  text-align: center;
+}
+
+.trash-list-item .trash-actions {
+  text-align: center;
 }
 
 .trash-list-item:hover {
@@ -174,6 +187,7 @@
 .trash-actions {
   display: flex;
   gap: 8px;
+  justify-content: center;
 }
 
 .restore-button {

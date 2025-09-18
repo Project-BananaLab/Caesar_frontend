@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import Sidebar from '../widgets/Sidebar'
+import ChannelSidebar from '../widgets/ChannelSidebar'
 import Header from '../widgets/Header'
-import MessageList from '../widgets/MessageList'
-import Composer from '../widgets/Composer'
+import ChatMessageList from '../widgets/ChatMessageList'
+import ChatComposer from '../widgets/ChatComposer'
 import TypingIndicator from '../widgets/TypingIndicator'
 import PreviewPanel from '../widgets/PreviewPanel'
 import SettingsModal from '../widgets/SettingsModal'
@@ -31,6 +31,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
   const [searchInChat, setSearchInChat] = useState('')
   const [searchMatches, setSearchMatches] = useState([])
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1)
+
 
   // 키보드 단축키 처리
   useEffect(() => {
@@ -130,10 +131,12 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
   function selectChat(id) {
     setCurrentId(id)
     const conv = conversations.find(c => c.id === id)
-    setMessages(conv?.messages || [])
+    // 빈 메시지 필터링
+    const validMessages = (conv?.messages || []).filter(msg => msg.text && msg.text.trim())
+    setMessages(validMessages)
     
     if (conv) {
-      agentService.loadConversationHistory(conv.messages)
+      agentService.loadConversationHistory(validMessages)
     }
   }
 
@@ -257,10 +260,11 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
       setConversations(list => {
         const updated = list.map(c => {
           if (c.id === conversationId) {
-            const updatedMessages = [...(c.messages || []), userMsg, botMsg]
+            // 빈 메시지 필터링 후 업데이트
+            const validMessages = [...(c.messages || []), userMsg, botMsg].filter(msg => msg.text && msg.text.trim())
             return {
               ...c,
-              messages: updatedMessages,
+              messages: validMessages,
               preview: botMsg.text.length > 24 ? botMsg.text.substring(0, 24) + '...' : botMsg.text,
               lastMessageTime: new Date().toISOString()
             }
@@ -285,7 +289,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
 
   return (
     <div className="chat-page">
-      <Sidebar
+      <ChannelSidebar
         conversations={sortedConversations}
         onNewChat={startNewChat}
         onSelect={selectChat}
@@ -296,24 +300,24 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
         onLogout={onLogout}
         onOpenSettings={() => setOpenSettings(true)}
         onSearchInChat={(query) => {
-          console.log('검색어:', query, '메시지 개수:', messages.length)
-          setSearchInChat(query)
-          if (query) {
-            // 검색어가 있으면 메시지에서 매치 찾기
-            const matches = []
-            messages.forEach((message, messageIndex) => {
-              if (message.text && message.text.toLowerCase().includes(query.toLowerCase())) {
-                matches.push({ messageIndex, message })
-                console.log('매치 발견:', messageIndex, message.text.substring(0, 50))
-              }
-            })
-            console.log('총 매치 개수:', matches.length)
-            setSearchMatches(matches)
-            setCurrentMatchIndex(matches.length > 0 ? 0 : -1)
-          } else {
+          // 빈 검색어는 무시
+          if (!query || !query.trim()) {
+            setSearchInChat('')
             setSearchMatches([])
             setCurrentMatchIndex(-1)
+            return
           }
+          
+          setSearchInChat(query)
+          // 검색어가 있으면 메시지에서 매치 찾기
+          const matches = []
+          messages.forEach((message, messageIndex) => {
+            if (message.text && message.text.toLowerCase().includes(query.toLowerCase())) {
+              matches.push({ messageIndex, message })
+            }
+          })
+          setSearchMatches(matches)
+          setCurrentMatchIndex(matches.length > 0 ? 0 : -1)
         }}
         onRestore={restoreChat}
       />
@@ -329,7 +333,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
             }
           }}
         />
-        <MessageList 
+        <ChatMessageList 
           messages={messages} 
           onPreview={(url) => setPreviewUrl(url)}
           searchQuery={searchInChat}
@@ -381,7 +385,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
           </div>
         )}
         
-        <Composer value={input} onChange={setInput} onSend={handleSend} disabled={busy} />
+        <ChatComposer value={input} onChange={setInput} onSend={handleSend} disabled={busy} />
       </div>
       {previewUrl && <PreviewPanel url={previewUrl} onClose={() => setPreviewUrl(null)} />}
       <SettingsModal open={openSettings} onClose={() => setOpenSettings(false)} />

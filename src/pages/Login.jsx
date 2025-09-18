@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa6'
 import { getUserRole } from '../entities/user/model/constants'
+import GoogleLoginButton from '../widgets/GoogleLoginButton'
 import '../shared/ui/Login.css'
 
 export default function Login({ onLogin }) {
@@ -8,6 +9,26 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+
+  // 구글 로그인 성공 처리
+  const handleGoogleLoginSuccess = (googleUser) => {
+    console.log('구글 로그인 성공:', googleUser)
+    onLogin({
+      username: googleUser.username,
+      email: googleUser.email,
+      picture: googleUser.picture,
+      type: 'google',
+      googleId: googleUser.googleId,
+      isAuthenticated: true,
+      role: 'user' // 구글 사용자는 일반 사용자
+    })
+  }
+
+  // 구글 로그인 실패 처리
+  const handleGoogleLoginError = (error) => {
+    console.error('구글 로그인 에러:', error)
+    setError('구글 로그인에 실패했습니다. 다시 시도해주세요.')
+  }
 
   // 더미 로그인 데이터
   const dummyUsers = [
@@ -21,7 +42,7 @@ export default function Login({ onLogin }) {
     const value = e.target.value
     // 영어와 숫자만 허용
     const englishOnly = value.replace(/[^a-zA-Z0-9]/g, '')
-    setUsername(englishOnly.trim())
+    setUsername(englishOnly)
   }
 
   // 비밀번호 영어만 입력 처리
@@ -29,7 +50,7 @@ export default function Login({ onLogin }) {
     const value = e.target.value
     // 영어, 숫자, 특수문자만 허용 (한글 제외)
     const englishOnly = value.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
-    setPassword(englishOnly.trim())
+    setPassword(englishOnly)
   }
 
   // 비밀번호 보이기/숨기기 토글
@@ -99,7 +120,7 @@ export default function Login({ onLogin }) {
                 }}
                 aria-label="비밀번호 보이기/숨기기"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {showPassword ? <FaEye /> : <FaEyeSlash />}
               </span>
             </div>
           </div>
@@ -111,15 +132,28 @@ export default function Login({ onLogin }) {
           )}
 
           <button type="submit" className="login-button">
-            로그인
+            관리자 로그인
           </button>
         </form>
 
+        {/* 구분선 */}
+        <div className="login-divider">
+          <span>또는</span>
+        </div>
+
+        {/* 구글 로그인 */}
+        <div className="google-login-section">
+          <GoogleLoginButton 
+            onSuccess={handleGoogleLoginSuccess}
+            onError={handleGoogleLoginError}
+          />
+        </div>
+
         <div className="test-accounts">
           <div className="test-accounts-title">테스트 계정:</div>
-          <div>아이디: admin / 비밀번호: admin123 (관리자)</div>
-          <div>아이디: user / 비밀번호: user123 (일반유저)</div>
-          <div>아이디: caesar / 비밀번호: caesar2024 (관리자)</div>
+          <div>아이디: admin / 비밀번호: admin123</div>
+          <div>아이디: user / 비밀번호: user123</div>
+          <div>아이디: caesar / 비밀번호: caesar2024</div>
         </div>
       </div>
     </div>
