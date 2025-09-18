@@ -1,8 +1,8 @@
-import React from 'react'
-import '../shared/ui/LoadingBar.css'
+import React from "react";
+import "../assets/styles/LoadingBar.css";
 
-export default function LoadingBar({ isVisible, message = '로딩 중...' }) {
-  if (!isVisible) return null
+export default function LoadingBar({ isVisible, message = "로딩 중..." }) {
+  if (!isVisible) return null;
 
   return (
     <div className="loading-overlay">
@@ -13,5 +13,5 @@ export default function LoadingBar({ isVisible, message = '로딩 중...' }) {
         <p className="loading-message">{message}</p>
       </div>
     </div>
-  )
+  );
 }

@@ -1,67 +1,72 @@
-import React, { useState } from 'react'
-import { FaEye, FaEyeSlash } from 'react-icons/fa6'
-import { getUserRole } from '../entities/user/model/constants'
-import '../shared/ui/Login.css'
+import React, { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import { getUserRole } from "../entities/user/constants";
+import "../assets/styles/Login.css";
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   // 더미 로그인 데이터
   const dummyUsers = [
-    { username: 'admin', password: 'admin123' },
-    { username: 'user', password: 'user123' },
-    { username: 'caesar', password: 'caesar2024' }
-  ]
+    { username: "admin", password: "admin123" },
+    { username: "user", password: "user123" },
+    { username: "caesar", password: "caesar2024" },
+  ];
 
   // 아이디 영어만 입력 처리
   const handleUsernameChange = (e) => {
-    const value = e.target.value
+    const value = e.target.value;
     // 영어와 숫자만 허용
-    const englishOnly = value.replace(/[^a-zA-Z0-9]/g, '')
-    setUsername(englishOnly.trim())
-  }
+    const englishOnly = value.replace(/[^a-zA-Z0-9]/g, "");
+    setUsername(englishOnly.trim());
+  };
 
   // 비밀번호 영어만 입력 처리
   const handlePasswordChange = (e) => {
-    const value = e.target.value
+    const value = e.target.value;
     // 영어, 숫자, 특수문자만 허용 (한글 제외)
-    const englishOnly = value.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
-    setPassword(englishOnly.trim())
-  }
+    const englishOnly = value.replace(
+      /[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g,
+      ""
+    );
+    setPassword(englishOnly.trim());
+  };
 
   // 비밀번호 보이기/숨기기 토글
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
+    setShowPassword(!showPassword);
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
-    const uname = username.trim()
-    const pwd = password.trim()
-    const user = dummyUsers.find(u => u.username === uname && u.password === pwd)
+    const uname = username.trim();
+    const pwd = password.trim();
+    const user = dummyUsers.find(
+      (u) => u.username === uname && u.password === pwd
+    );
 
     if (user) {
-      const role = getUserRole(uname)
-      onLogin({ 
-        username: uname, 
+      const role = getUserRole(uname);
+      onLogin({
+        username: uname,
         isAuthenticated: true,
-        role: role
-      })
+        role: role,
+      });
     } else {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+      setError("아이디 또는 비밀번호가 올바르지 않습니다.");
     }
-  }
+  };
 
   return (
     <div className="login-container">
       <div className="login-card">
         <div className="login-logo"></div>
-        
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label className="form-label">아이디</label>
@@ -92,9 +97,9 @@ export default function Login({ onLogin }) {
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    togglePasswordVisibility()
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    togglePasswordVisibility();
                   }
                 }}
                 aria-label="비밀번호 보이기/숨기기"
@@ -104,11 +109,7 @@ export default function Login({ onLogin }) {
             </div>
           </div>
 
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
+          {error && <div className="error-message">{error}</div>}
 
           <button type="submit" className="login-button">
             로그인
@@ -123,5 +124,5 @@ export default function Login({ onLogin }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
