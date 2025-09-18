@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { BsGear } from 'react-icons/bs'
-import { isAdmin } from '../entities/user/model/constants'
-import { loadTrashConversations } from '../entities/conversation/model/storage'
+import { isAdmin } from '../entities/user/constants'
+import { loadTrashConversations } from '../entities/conversation/storage'
 import TrashModal from './TrashModal'
-import '../shared/ui/ChannelSidebar.css'
+import '../assets/styles/ChannelSidebar.css'
 
 export default function ChannelSidebar({ 
   conversations = [], 

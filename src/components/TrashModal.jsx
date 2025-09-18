@@ -4,9 +4,9 @@ import {
   restoreFromTrash, 
   permanentDeleteFromTrash,
   clearTrash 
-} from '../entities/conversation/model/storage'
-import { MAX_CONVERSATIONS } from '../entities/conversation/model/constants'
-import '../shared/ui/TrashModal.css'
+} from '../entities/conversation/storage'
+import { MAX_CONVERSATIONS } from '../entities/conversation/constants'
+import '../assets/styles/TrashModal.css'
 
 export default function TrashModal({ 
   open, 
