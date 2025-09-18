@@ -1,6 +1,6 @@
 import React from 'react'
 import { BsGearFill } from 'react-icons/bs'
-import { isAdmin } from '../entities/user/model/constants'
+import { isAdmin } from '../entities/user/constants'
 
 export default function AdminHeader({ user, onLogout, onOpenSettings }) {
   return (

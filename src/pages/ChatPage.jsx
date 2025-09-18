@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react'
-import ChannelSidebar from '../widgets/ChannelSidebar'
-import Header from '../widgets/Header'
-import ChatMessageList from '../widgets/ChatMessageList'
-import ChatComposer from '../widgets/ChatComposer'
-import TypingIndicator from '../widgets/TypingIndicator'
-import PreviewPanel from '../widgets/PreviewPanel'
-import SettingsModal from '../widgets/SettingsModal'
-import IntegrationModal from '../widgets/IntegrationModal'
+import ChannelSidebar from '../components/ChannelSidebar'
+import Header from '../components/Header'
+import ChatMessageList from '../components/ChatMessageList'
+import ChatComposer from '../components/ChatComposer'
+import TypingIndicator from '../components/TypingIndicator'
+import PreviewPanel from '../components/PreviewPanel'
+import SettingsModal from '../components/SettingsModal'
+import IntegrationModal from '../components/IntegrationModal'
 import { 
   saveConversations, 
   loadConversations, 
   saveCurrentChatId, 
   loadCurrentChatId,
   moveToTrash
-} from '../entities/conversation/model/storage'
+} from '../entities/conversation/storage'
 import agentService from '../shared/api/agentService'
-import '../shared/ui/ChatPage.css'
+import '../assets/styles/ChatPage.css'
 
-import { MAX_CONVERSATIONS } from '../entities/conversation/model/constants'
+import { MAX_CONVERSATIONS } from '../entities/conversation/constants'
 
 export default function ChatPage({ user, onLogout, onAgentModeChange }) {
   const [input, setInput] = useState('')

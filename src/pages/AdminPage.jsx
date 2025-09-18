@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
-import AdminHeader from '../widgets/AdminHeader'
-import LoadingModal from '../widgets/LoadingModal'
-import PreviewPanel from '../widgets/PreviewPanel'
-import IntegrationModal from '../widgets/IntegrationModal'
-import SettingsModal from '../widgets/SettingsModal'
+import AdminHeader from '../components/AdminHeader'
+import LoadingModal from '../components/LoadingModal'
+import PreviewPanel from '../components/PreviewPanel'
+import IntegrationModal from '../components/IntegrationModal'
+import SettingsModal from '../components/SettingsModal'
 import fileService from '../shared/api/fileService'
-import '../shared/ui/AdminPage.css'
+import '../assets/styles/AdminPage.css'
 
 
 const typeEmoji = { 

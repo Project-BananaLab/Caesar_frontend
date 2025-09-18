@@ -1,5 +1,5 @@
 import React from 'react'
-import '../shared/ui/LoadingModal.css'
+import '../assets/styles/LoadingModal.css'
 
 export default function LoadingModal({ 
   isOpen = false, 

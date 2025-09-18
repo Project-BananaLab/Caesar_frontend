@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { saveAuthData, loadAuthData, clearAuthData } from '../entities/user/model/auth'
-import { isAdmin } from '../entities/user/model/constants'
+import { saveAuthData, loadAuthData, clearAuthData } from '../entities/user/auth'
+import { isAdmin } from '../entities/user/constants'
 import Login from '../pages/Login'
 import ChatPage from '../pages/ChatPage'
 import AdminPage from '../pages/AdminPage'
-import LoadingModal from '../widgets/LoadingModal'
-import '../shared/ui/App.css'
+import LoadingModal from '../components/LoadingModal'
+import '../assets/styles/App.css'
 
 // 보호된 라우트 컴포넌트
 function ProtectedRoute({ children, requireAdmin = false }) {

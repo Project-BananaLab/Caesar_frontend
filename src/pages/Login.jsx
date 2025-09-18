@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa6'
-import { getUserRole } from '../entities/user/model/constants'
-import GoogleLoginButton from '../widgets/GoogleLoginButton'
-import '../shared/ui/Login.css'
+import { getUserRole } from '../entities/user/constants'
+import GoogleLoginButton from '../components/GoogleLoginButton'
+import '../assets/styles/Login.css'
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('')
