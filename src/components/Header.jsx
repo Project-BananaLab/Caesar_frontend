@@ -3,7 +3,8 @@ import llmService from '../shared/api/llmService.js'
 import LoadingModal from './LoadingModal'
 
 export default function Header({ 
-  title = 'Caesar AI Assistant', 
+  title = 'Caesar AI Assistant',
+  logo = null,
   status = 'connected',
   onAgentModeChange = null 
 }) {
@@ -66,62 +67,21 @@ export default function Header({
       padding: '0 16px',
       background: '#FFFFFF'
     }}>
-      <div style={{ fontWeight: 600, color: '#111827' }}>{title}</div>
-      
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {/* Agent 모드 토글 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: '#6B7280' }}>Agent 모드</span>
-          <button
-            onClick={handleAgentToggle}
-            disabled={isToggling}
-            style={{
-              width: 40,
-              height: 20,
-              borderRadius: 10,
-              border: 'none',
-              background: agentMode ? '#10B981' : '#D1D5DB',
-              position: 'relative',
-              cursor: isToggling ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s',
-              opacity: isToggling ? 0.6 : 1
-            }}
-          >
-            <div style={{
-              width: 16,
-              height: 16,
-              borderRadius: '50%',
-              background: '#FFFFFF',
-              position: 'absolute',
-              top: 2,
-              left: agentMode ? 22 : 2,
-              transition: 'left 0.2s',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }} />
-          </button>
-          {agentMode && (
-            <span style={{
-              fontSize: 10,
-              color: agentStatus.connected ? '#10B981' : '#EF4444',
-              fontWeight: 500
-            }}>
-              {agentStatus.connected ? '🤖 연결됨' : '❌연결 실패'}
-            </span>
-          )}
-        </div>
-
-        {/* 상태 표시 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ 
-            width: 8, 
-            height: 8, 
-            borderRadius: 8, 
-            background: status === 'thinking…' ? '#F59E0B' : '#10B981', 
-            display: 'inline-block' 
-          }} />
-          <span style={{ fontSize: 12, color: '#6B7280' }}>{status}</span>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {logo ? (
+          <img 
+            src={logo} 
+            alt="Caesar Logo" 
+            style={{ 
+              height: '32px', 
+              objectFit: 'contain'
+            }} 
+          />
+        ) : (
+          <div style={{ fontWeight: 600, color: '#111827' }}>{title}</div>
+        )}
       </div>
+      
     </header>
     <LoadingModal 
       isOpen={isToggling} 

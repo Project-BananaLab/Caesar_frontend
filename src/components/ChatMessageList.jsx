@@ -133,6 +133,8 @@ export default function ChatMessageList({ messages, onPreview, searchQuery, sear
 
   return (
     <div className="chat-message-list" style={{ 
+      width: '60%',
+      margin: '0 auto',
       flex: 1, 
       overflowY: 'auto', 
       padding: '16px',

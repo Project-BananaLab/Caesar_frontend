@@ -1,8 +1,8 @@
 /**
- * 간단한 구글 캘린더 서비스 (프론트엔드 전용)
+ * 구글 캘린더 API 서비스
  */
 
-class SimpleCalendarService {
+class CalendarService {
   constructor() {
     this.accessToken = null
   }
@@ -61,12 +61,51 @@ class SimpleCalendarService {
     }
   }
 
-  // 이벤트 간단 포맷팅
+  // 이번 주 일정 가져오기
+  async getWeekEvents() {
+    const token = this.getAccessToken()
+    if (!token) {
+      throw new Error('캘린더가 연결되지 않았습니다.')
+    }
+
+    const today = new Date()
+    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()))
+    const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6))
+    
+    startOfWeek.setHours(0, 0, 0, 0)
+    endOfWeek.setHours(23, 59, 59, 999)
+
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
+        `timeMin=${startOfWeek.toISOString()}&timeMax=${endOfWeek.toISOString()}&singleEvents=true&orderBy=startTime`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data.items || []
+    } catch (error) {
+      console.error('주간 일정 로드 실패:', error)
+      throw error
+    }
+  }
+
+  // 이벤트 포맷팅
   formatEvent(event) {
     const start = event.start?.dateTime || event.start?.date
     const end = event.end?.dateTime || event.end?.date
     
     return {
+      id: event.id,
       title: event.summary || '제목 없음',
       start: start ? new Date(start) : null,
       end: end ? new Date(end) : null,
@@ -83,4 +122,4 @@ class SimpleCalendarService {
   }
 }
 
-export default new SimpleCalendarService()
+export default new CalendarService()

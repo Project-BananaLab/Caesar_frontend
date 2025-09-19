@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
-import SimpleCalendarButton from './SimpleCalendarButton'
-import SimpleCalendarDisplay from './SimpleCalendarDisplay'
+import CalendarButton from './CalendarButton'
+import CalendarDisplay from './CalendarDisplay'
 
 export default function SettingsModal({ open, onClose }) {
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function SettingsModal({ open, onClose }) {
               </div>
               
               <div style={{ marginBottom: '16px' }}>
-                <SimpleCalendarButton
+                <CalendarButton
                   onSuccess={(events) => {
                     alert(`캘린더 연결 성공! 오늘 일정 ${events.length}개를 찾았습니다.`)
                   }}
@@ -81,7 +81,7 @@ export default function SettingsModal({ open, onClose }) {
                 />
               </div>
               
-              <SimpleCalendarDisplay />
+              <CalendarDisplay />
             </section>
 
         </div>
