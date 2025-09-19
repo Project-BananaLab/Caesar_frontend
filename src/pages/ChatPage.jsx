@@ -323,7 +323,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
       />
       <div className="chat-main">
         <Header 
-          title={`Caesar AI Assistant - ${user?.username || 'User'}`} 
+          logo="/caesar_logo_hori.png"
           status={busy ? 'thinking…' : 'connected'} 
           onAgentModeChange={(newMode) => {
             // 에이전트 모드 변경 시 대화 내역 유지

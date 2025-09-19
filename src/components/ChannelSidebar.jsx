@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { BsGear } from 'react-icons/bs'
+import { FaRegTrashAlt } from 'react-icons/fa'
+import { HiOutlinePencil } from 'react-icons/hi2'
 import { isAdmin } from '../entities/user/constants'
-import { loadTrashConversations } from '../entities/conversation/storage'
+import { loadTrashConversations, clearTrash } from '../entities/conversation/storage'
 import TrashModal from './TrashModal'
 import '../assets/styles/ChannelSidebar.css'
 
@@ -166,8 +168,14 @@ export default function ChannelSidebar({
 
   const handleTrashEmpty = () => {
     if (window.confirm('휴지통을 비우시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-      // 휴지통 비우기 로직은 TrashModal에서 처리
-      setOpenTrashModal(true)
+      // 휴지통 바로 비우기
+      const success = clearTrash(user?.username)
+      if (success) {
+        updateTrashCount() // 휴지통 개수 업데이트
+        alert('휴지통이 비워졌습니다.')
+      } else {
+        alert('휴지통 비우기에 실패했습니다.')
+      }
     }
     setOpenTrashMenu(false)
   }
@@ -187,11 +195,6 @@ export default function ChannelSidebar({
           </div>
         </div>
         <div className="channel-header-actions">
-          {location.pathname !== '/admin' && (
-            <button onClick={onOpenSettings} className="channel-settings-button" title="설정">
-              <BsGear size={18} />
-            </button>
-          )}
           {isAdmin(user) && location.pathname !== '/admin' && (
             <button 
               onClick={() => navigate('/admin')} 
@@ -285,7 +288,7 @@ export default function ChannelSidebar({
                   className="channel-conversation-action-button"
                   title="이름 변경"
                 >
-                  ✏️
+                  <HiOutlinePencil size={14} />
                 </button>
                 <button
                   onClick={(e) => {
@@ -295,7 +298,7 @@ export default function ChannelSidebar({
                   className="channel-conversation-action-button"
                   title="삭제"
                 >
-                  🗑️
+                  <FaRegTrashAlt size={14} />
                 </button>
               </div>
             </div>
@@ -325,31 +328,44 @@ export default function ChannelSidebar({
           </div>
         )}
 
-        {/* 휴지통 섹션 */}
-        <div className="channel-trash-section">
-          <div className="channel-trash-menu-container" ref={trashMenuRef}>
-            <button 
-              onClick={() => setOpenTrashMenu(!openTrashMenu)}
-              className="channel-trash-button"
-            >
-              🗑️ 휴지통
-              <span className="channel-trash-count">
-                {trashCount}
-              </span>
-            </button>
-            
-            {openTrashMenu && (
-              <div className="channel-trash-menu">
-                <button onClick={handleTrashManage} className="channel-trash-menu-item">
-                  관리
-                </button>
-                <button onClick={handleTrashEmpty} className="channel-trash-menu-item">
-                  비우기
-                </button>
-              </div>
-            )}
+        {/* 구분선 */}
+        <div className="channel-divider"></div>
+
+        {/* 하단 액션 섹션 */}
+        <div className="channel-bottom-actions">
+          {/* 설정 섹션 */}
+          {location.pathname !== '/admin' && (
+            <div className="channel-settings-section">
+              <button onClick={onOpenSettings} className="channel-settings-button" title="설정">
+                <BsGear size={18} />
+              </button>
+            </div>
+          )}
+
+          {/* 휴지통 섹션 */}
+          <div className="channel-trash-section">
+            <div className="channel-trash-menu-container" ref={trashMenuRef}>
+              <button 
+                onClick={() => setOpenTrashMenu(!openTrashMenu)}
+                className="channel-trash-button"
+              >
+                휴지통
+              </button>
+              
+              {openTrashMenu && (
+                <div className="channel-trash-menu">
+                  <button onClick={handleTrashManage} className="channel-trash-menu-item">
+                    관리
+                  </button>
+                  <button onClick={handleTrashEmpty} className="channel-trash-menu-item">
+                    비우기
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
       </div>
 
       {/* 휴지통 모달 */}

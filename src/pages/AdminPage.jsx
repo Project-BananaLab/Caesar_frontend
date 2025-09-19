@@ -221,27 +221,7 @@ export default function AdminPage({ user, onLogout }) {
             <div className="file-upload-section">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ margin: 0 }}>파일 관리</h3>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="파일 검색..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value)
-                      setCurrentPage(1) // 검색 시 첫 페이지로 이동
-                    }}
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #D1D5DB',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      width: '200px'
-                    }}
-                  />
-                  <span style={{ fontSize: '14px', color: '#6B7280' }}>
-                    총 {filteredFiles.length}개 파일
-                  </span>
-                </div>
+
               </div>
               <div
                 className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}
@@ -351,6 +331,61 @@ export default function AdminPage({ user, onLogout }) {
                   </div>
                 </div>
               )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <span style={{ fontSize: '14px', color: '#6B7280' }}>
+                총 {filteredFiles.length}개 파일
+              </span>
+              <div style={{ 
+                position: 'relative', 
+                display: 'inline-block',
+                width: '200px'
+              }}>
+                <input
+                  type="text"
+                  placeholder="파일 검색..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setCurrentPage(1) // 검색 시 첫 페이지로 이동
+                  }}
+                  style={{
+                    padding: '8px 32px 8px 12px',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    width: '100%'
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('')
+                      setCurrentPage(1)
+                    }}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      color: '#6B7280',
+                      padding: '2px',
+                      borderRadius: '2px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="검색어 지우기"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="file-list-section">

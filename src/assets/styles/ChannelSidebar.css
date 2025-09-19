@@ -20,7 +20,7 @@
 .channel-user-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .channel-user-avatar {
@@ -38,18 +38,19 @@
 
 .channel-user-details {
   display: flex;
-  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
 }
 
 .channel-user-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 18px;
   color: #E5E7EB;
 }
 
 .channel-user-role {
-  font-size: 12px;
-  color: #9CA3AF;
+  font-size: 14px;
+  color: #E5E7EB;
 }
 
 .channel-header-actions {
@@ -267,13 +268,18 @@
 }
 
 .channel-conversation-action-button {
-  padding: 4px;
+  padding: 6px;
   background: transparent;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  color: white;
   transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  min-height: 26px;
 }
 
 .channel-conversation-action-button:hover {
@@ -316,7 +322,7 @@
 }
 
 .channel-trash-section {
-  padding: 8px 16px 16px;
+  padding: 8px;
   border-top: 1px solid #111827;
 }
 
@@ -325,8 +331,8 @@
 }
 
 .channel-trash-button {
-  width: 100%;
-  padding: 8px 12px;
+  width: auto;
+  padding: 0 12px;
   background: #1E293B;
   border: 1px solid #334155;
   border-radius: 6px;
@@ -335,8 +341,9 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   transition: all 0.2s ease;
+  height: 36px;
 }
 
 .channel-trash-button:hover {
@@ -370,6 +377,56 @@
   z-index: 1000;
   margin-bottom: 4px;
   min-width: 80px;
+}
+
+.channel-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #334155, transparent);
+  margin: 16px 8px;
+}
+
+.channel-bottom-actions {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 8px;
+  padding: 0 8px;
+  height: 36px;
+}
+
+.channel-settings-section {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.channel-trash-section {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.channel-settings-button {
+  width: auto;
+  padding: 8px;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #9CA3AF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-width: 36px;
+  height: 36px;
+}
+
+.channel-settings-button:hover {
+  background: #23293a;
+  color: #E5E7EB;
 }
 
 .channel-trash-menu-item {
