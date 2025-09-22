@@ -82,7 +82,7 @@ export default function IntegrationModal({ open, onClose }) {
       alert(`${serviceId} 연동이 해제되었습니다.`)
     } catch (error) {
       console.error(`${serviceId} 연동 해제 실패:`, error)
-      alert(`${serviceId} 연동 해제에 실패했습니다.`)
+      alert(`${serviceId} 연동 해제에 실패했습  니다.`)
     } finally {
       setConnecting(null)
     }

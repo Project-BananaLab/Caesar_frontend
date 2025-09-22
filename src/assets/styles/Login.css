@@ -156,6 +156,55 @@
   margin-bottom: 1rem;
 }
 
+/* TAB 스타일 */
+.login-tabs {
+  display: flex;
+  border-bottom: 2px solid #E5E7EB;
+  margin-bottom: 2rem;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B7280;
+  transition: all 0.2s ease;
+}
+
+.login-tab:hover {
+  color: #374151;
+  background: #F9FAFB;
+}
+
+.login-tab.active {
+  color: #4F46E5;
+  border-bottom-color: #4F46E5;
+  background: #F8FAFC;
+}
+
+.login-tab-content {
+  min-height: 300px;
+}
+
+.employee-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.company-login {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+}
+
+.company-login:hover {
+  background: linear-gradient(135deg, #4338CA, #6D28D9);
+}
+
 /* 비밀번호 입력 컸테이너 */
 .password-input-container {
   position: relative;
