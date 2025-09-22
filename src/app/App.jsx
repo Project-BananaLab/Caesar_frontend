@@ -5,7 +5,7 @@ import { isAdmin } from '../entities/user/constants'
 import Login from '../pages/Login'
 import ChatPage from '../pages/ChatPage'
 import AdminPage from '../pages/AdminPage'
-import LoadingModal from '../components/LoadingModal'
+import LoadingModal from '../components/admin/LoadingModal'
 import '../assets/styles/App.css'
 
 // 보호된 라우트 컴포넌트

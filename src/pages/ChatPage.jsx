@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import ChannelSidebar from '../components/ChannelSidebar'
-import Header from '../components/Header'
-import ChatMessageList from '../components/ChatMessageList'
-import ChatComposer from '../components/ChatComposer'
-import TypingIndicator from '../components/TypingIndicator'
+import ChannelSidebar from '../components/chat/ChannelSidebar'
+import Header from '../components/chat/Header'
+import ChatMessageList from '../components/chat/ChatMessageList'
+import ChatComposer from '../components/chat/ChatComposer'
+import Input from '../components/chat/input'
 import PreviewPanel from '../components/PreviewPanel'
 import SettingsModal from '../components/SettingsModal'
-import IntegrationModal from '../components/IntegrationModal'
+// import IntegrationModal from '../components/admin/IntegrationModal'
 import { 
   saveConversations, 
   loadConversations, 
@@ -340,7 +340,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
           searchMatches={searchMatches}
           currentMatchIndex={currentMatchIndex}
         />
-        <TypingIndicator visible={busy} />
+        <Input visible={busy} />
         
         {/* 검색 네비게이션 컨트롤 */}
         {searchInChat && searchMatches.length > 0 && (
@@ -389,7 +389,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
       </div>
       {previewUrl && <PreviewPanel url={previewUrl} onClose={() => setPreviewUrl(null)} />}
       <SettingsModal open={openSettings} onClose={() => setOpenSettings(false)} />
-      <IntegrationModal open={openIntegrations} onClose={() => setOpenIntegrations(false)} />
+      {/* <IntegrationModal open={openIntegrations} onClose={() => setOpenIntegrations(false)} /> */}
     </div>
   )
 }

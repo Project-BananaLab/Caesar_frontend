@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
-import CalendarButton from './CalendarButton'
-import CalendarDisplay from './CalendarDisplay'
+
 
 export default function SettingsModal({ open, onClose }) {
   useEffect(() => {

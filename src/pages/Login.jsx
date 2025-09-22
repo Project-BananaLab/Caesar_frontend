@@ -1,28 +1,13 @@
 import React, { useState } from 'react'
-import { FaEye, FaEyeSlash } from 'react-icons/fa6'
 import { getUserRole } from '../entities/user/constants'
 import GoogleLoginButton from '../components/GoogleLoginButton'
 import '../assets/styles/Login.css'
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [activeTab, setActiveTab] = useState('company') // 'company' or 'employee'
+  const [companyId, setCompanyId] = useState('')
+  const [companyCode, setCompanyCode] = useState('')
   const [error, setError] = useState('')
-
-  // 구글 로그인 성공 처리
-  const handleGoogleLoginSuccess = (googleUser) => {
-    console.log('구글 로그인 성공:', googleUser)
-    onLogin({
-      username: googleUser.username,
-      email: googleUser.email,
-      picture: googleUser.picture,
-      type: 'google',
-      googleId: googleUser.googleId,
-      isAuthenticated: true,
-      role: 'user' // 구글 사용자는 일반 사용자
-    })
-  }
 
   // 구글 로그인 실패 처리
   const handleGoogleLoginError = (error) => {
@@ -30,52 +15,69 @@ export default function Login({ onLogin }) {
     setError('구글 로그인에 실패했습니다. 다시 시도해주세요.')
   }
 
-  // 더미 로그인 데이터
-  const dummyUsers = [
-    { username: 'admin', password: 'admin123' },
-    { username: 'user', password: 'user123' },
-    { username: 'caesar', password: 'caesar2024' }
+  // 회사 계정 데이터 (ID만으로 인증)
+  const companyAccounts = [
+    { id: 'admin', role: 'admin' },
+    { id: 'caesar', role: 'admin' },
+    { id: 'manager', role: 'user' }
   ]
 
-  // 아이디 영어만 입력 처리
-  const handleUsernameChange = (e) => {
+  // 회사 코드 데이터
+  const validCompanyCodes = ['CAESAR2024', 'COMPANY123']
+
+  // 회사 ID 입력 처리
+  const handleCompanyIdChange = (e) => {
     const value = e.target.value
     // 영어와 숫자만 허용
     const englishOnly = value.replace(/[^a-zA-Z0-9]/g, '')
-    setUsername(englishOnly)
+    setCompanyId(englishOnly)
   }
 
-  // 비밀번호 영어만 입력 처리
-  const handlePasswordChange = (e) => {
+  // 회사 코드 입력 처리
+  const handleCompanyCodeChange = (e) => {
     const value = e.target.value
-    // 영어, 숫자, 특수문자만 허용 (한글 제외)
-    const englishOnly = value.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
-    setPassword(englishOnly)
+    // 영어, 숫자, 대문자로 변환
+    const formatted = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+    setCompanyCode(formatted)
   }
 
-  // 비밀번호 보이기/숨기기 토글
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
-
-  const handleSubmit = (e) => {
+  // 회사용 로그인 처리
+  const handleCompanyLogin = (e) => {
     e.preventDefault()
     setError('')
-
-    const uname = username.trim()
-    const pwd = password.trim()
-    const user = dummyUsers.find(u => u.username === uname && u.password === pwd)
-
-    if (user) {
-      const role = getUserRole(uname)
+    
+    const account = companyAccounts.find(acc => acc.id.toLowerCase() === companyId.toLowerCase())
+    
+    if (account) {
       onLogin({ 
-        username: uname, 
+        username: account.id, 
+        type: 'company',
         isAuthenticated: true,
-        role: role
+        role: account.role
       })
     } else {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+      setError('존재하지 않는 회사 계정입니다.')
     }
+  }
+
+  // 직원용 로그인 처리 (구글 + 회사코드)
+  const handleEmployeeGoogleLogin = (googleUser) => {
+    if (!companyCode || !validCompanyCodes.includes(companyCode)) {
+      setError('올바른 회사 코드를 입력해주세요.')
+      return
+    }
+
+    console.log('직원 구글 로그인 성공:', googleUser)
+    onLogin({
+      username: googleUser.username,
+      email: googleUser.email,
+      picture: googleUser.picture,
+      type: 'employee',
+      companyCode: companyCode,
+      googleId: googleUser.googleId,
+      isAuthenticated: true,
+      role: 'user'
+    })
   }
 
   return (
@@ -83,77 +85,97 @@ export default function Login({ onLogin }) {
       <div className="login-card">
         <div className="login-logo"></div>
         
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label className="form-label">아이디</label>
-            <input
-              type="text"
-              value={username}
-              onChange={handleUsernameChange}
-              placeholder="아이디를 입력하세요 (영어+숫자)"
-              className="form-input"
-              required
-            />
-          </div>
+        {/* TAB 헤더 */}
+        <div className="login-tabs">
+          <button 
+            className={`login-tab ${activeTab === 'company' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('company')
+              setError('')
+            }}
+          >
+            회사용 로그인
+          </button>
+          <button 
+            className={`login-tab ${activeTab === 'employee' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('employee')
+              setError('')
+            }}
+          >
+            직원용 로그인
+          </button>
+        </div>
 
-          <div className="form-group">
-            <label className="form-label">비밀번호</label>
-            <div className="password-input-container">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={handlePasswordChange}
-                placeholder="비밀번호를 입력하세요 (영어+숫자+특수문자)"
-                className="form-input password-input"
-                required
-              />
-              <span
-                onClick={togglePasswordVisibility}
-                className="password-toggle-button"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    togglePasswordVisibility()
-                  }
-                }}
-                aria-label="비밀번호 보이기/숨기기"
-              >
-                {showPassword ? <FaEye /> : <FaEyeSlash />}
-              </span>
-            </div>
-          </div>
+        {/* TAB 컨텐츠 */}
+        <div className="login-tab-content">
+          {activeTab === 'company' ? (
+            /* 회사용 로그인 */
+            <form onSubmit={handleCompanyLogin} className="login-form">
+              <div className="form-group">
+                <label className="form-label">회사 계정 ID</label>
+                <input
+                  type="text"
+                  value={companyId}
+                  onChange={handleCompanyIdChange}
+                  placeholder="회사 계정 ID를 입력하세요"
+                  className="form-input"
+                  required
+                />
+              </div>
 
-          {error && (
-            <div className="error-message">
-              {error}
+              {error && (
+                <div className="error-message">
+                  {error}
+                </div>
+              )}
+
+              <button type="submit" className="login-button company-login">
+                로그인
+              </button>
+
+              <div className="test-accounts">
+                <div className="test-accounts-title">테스트 계정:</div>
+                <div>admin (관리자)</div>
+                <div>caesar (관리자)</div>
+                <div>manager (일반)</div>
+              </div>
+            </form>
+          ) : (
+            /* 직원용 로그인 */
+            <div className="employee-login-form">
+              <div className="form-group">
+                <label className="form-label">회사 코드</label>
+                <input
+                  type="text"
+                  value={companyCode}
+                  onChange={handleCompanyCodeChange}
+                  placeholder="회사 코드를 입력하세요"
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="error-message">
+                  {error}
+                </div>
+              )}
+
+              <div className="google-login-section">
+                <GoogleLoginButton 
+                  onSuccess={handleEmployeeGoogleLogin}
+                  onError={handleGoogleLoginError}
+                />
+              </div>
+
+              <div className="test-accounts">
+                <div className="test-accounts-title">테스트 회사 코드:</div>
+                <div>CAESAR2024</div>
+                <div>COMPANY123</div>
+              </div>
             </div>
           )}
-
-          <button type="submit" className="login-button">
-            관리자 로그인
-          </button>
-        </form>
-
-        {/* 구분선 */}
-        <div className="login-divider">
-          <span>또는</span>
-        </div>
-
-        {/* 구글 로그인 */}
-        <div className="google-login-section">
-          <GoogleLoginButton 
-            onSuccess={handleGoogleLoginSuccess}
-            onError={handleGoogleLoginError}
-          />
-        </div>
-
-        <div className="test-accounts">
-          <div className="test-accounts-title">테스트 계정:</div>
-          <div>아이디: admin / 비밀번호: admin123</div>
-          <div>아이디: user / 비밀번호: user123</div>
-          <div>아이디: caesar / 비밀번호: caesar2024</div>
         </div>
       </div>
     </div>

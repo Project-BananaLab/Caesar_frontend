@@ -3,10 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { BsGear } from 'react-icons/bs'
 import { FaRegTrashAlt } from 'react-icons/fa'
 import { HiOutlinePencil } from 'react-icons/hi2'
-import { isAdmin } from '../entities/user/constants'
-import { loadTrashConversations, clearTrash } from '../entities/conversation/storage'
+import { isAdmin } from '../../entities/user/constants'
+import { loadTrashConversations, clearTrash } from '../../entities/conversation/storage'
 import TrashModal from './TrashModal'
-import '../assets/styles/ChannelSidebar.css'
+import '../../assets/styles/ChannelSidebar.css'
 
 export default function ChannelSidebar({ 
   conversations = [], 
