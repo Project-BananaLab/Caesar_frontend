@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
-import { getUserRole } from '../entities/user/constants'
+import React, { useState, useEffect } from 'react'
 import GoogleLoginButton from '../components/GoogleLoginButton'
 import '../assets/styles/Login.css'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 export default function Login({ onLogin }) {
   const [activeTab, setActiveTab] = useState('company') // 'company' or 'employee'
@@ -9,20 +10,7 @@ export default function Login({ onLogin }) {
   const [companyCode, setCompanyCode] = useState('')
   const [error, setError] = useState('')
 
-  // 구글 로그인 실패 처리
-  const handleGoogleLoginError = (error) => {
-    console.error('구글 로그인 에러:', error)
-    setError('구글 로그인에 실패했습니다. 다시 시도해주세요.')
-  }
-
-  // 회사 계정 데이터 (ID만으로 인증)
-  const companyAccounts = [
-    { id: 'admin', role: 'admin' },
-    { id: 'caesar', role: 'admin' },
-    { id: 'manager', role: 'user' }
-  ]
-
-  // 회사 코드 데이터
+  // (예시) 유효 회사코드는 클라이언트에서 간단 체크만 하고, 실제 검증은 백엔드에서 하도록 확장 가능
   const validCompanyCodes = ['CAESAR2024', 'COMPANY123']
 
   // 회사 ID 입력 처리
@@ -41,22 +29,47 @@ export default function Login({ onLogin }) {
     setCompanyCode(formatted)
   }
 
-  // 회사용 로그인 처리
-  const handleCompanyLogin = (e) => {
+  // === 회사용 로그인: fetch로 FastAPI 호출 ===
+  const handleCompanyLogin = async (e) => {
     e.preventDefault()
     setError('')
-    
-    const account = companyAccounts.find(acc => acc.id.toLowerCase() === companyId.toLowerCase())
-    
-    if (account) {
-      onLogin({ 
-        username: account.id, 
+
+    try {
+      const res = await fetch(`${API_BASE}/api/company/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // JWT는 헤더로 주고받으므로 credentials 필요 없음
+        body: JSON.stringify({ co_id: companyId }),
+      })
+
+      // 실패 처리
+      if (!res.ok) {
+        let msg = '로그인에 실패했습니다.'
+        try {
+          const err = await res.json()
+          if (err?.detail) msg = err.detail
+          if (err?.message) msg = err.message
+        } catch (_) {}
+        throw new Error(msg)
+      }
+
+      // 성공 처리
+      const data = await res.json()
+      // data = { companyId, coId, coName, role, accessToken }
+
+      // 토큰 저장 (필요 시 만료 시점/리프레시 로직은 나중에 확장)
+      localStorage.setItem('accessToken', data.accessToken)
+      localStorage.setItem('role', data.role || 'admin')
+
+      onLogin({
+        username: data.coId,
         type: 'company',
         isAuthenticated: true,
-        role: account.role
+        role: data.role || 'admin',
+        accessToken: data.accessToken,
       })
-    } else {
-      setError('존재하지 않는 회사 계정입니다.')
+    } catch (err) {
+      setError(err.message || '로그인에 실패했습니다.')
     }
   }
 
@@ -124,21 +137,16 @@ export default function Login({ onLogin }) {
                 />
               </div>
 
-              {error && (
-                <div className="error-message">
-                  {error}
-                </div>
-              )}
+              {error && <div className="error-message">{error}</div>}
 
               <button type="submit" className="login-button company-login">
                 로그인
               </button>
 
+              {/* 필요 없다면 아래 테스트 안내는 제거하세요 */}
               <div className="test-accounts">
-                <div className="test-accounts-title">테스트 계정:</div>
-                <div>admin (관리자)</div>
-                <div>caesar (관리자)</div>
-                <div>manager (일반)</div>
+                <div className="test-accounts-title">테스트 예시:</div>
+                <div>acme / caesar 등 (DB에 존재하는 값)</div>
               </div>
             </form>
           ) : (
@@ -156,16 +164,15 @@ export default function Login({ onLogin }) {
                 />
               </div>
 
-              {error && (
-                <div className="error-message">
-                  {error}
-                </div>
-              )}
+              {error && <div className="error-message">{error}</div>}
 
               <div className="google-login-section">
                 <GoogleLoginButton 
                   onSuccess={handleEmployeeGoogleLogin}
-                  onError={handleGoogleLoginError}
+                  onError={(err) => {
+                    console.error('구글 로그인 에러:', err)
+                    setError('구글 로그인에 실패했습니다. 다시 시도해주세요.')
+                  }}
                 />
               </div>
 
