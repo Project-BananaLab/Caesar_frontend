@@ -53,6 +53,10 @@
   color: #111827;
   font-size: 16px;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   /* IME 모드 힐트 (일부 브라우저에서 지원) */
   ime-mode: disabled;
   -ms-ime-mode: disabled;

@@ -5,10 +5,34 @@
   box-sizing: border-box;
 }
 
+/* 스켈레톤 로딩 애니메이션 */
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background-color: #0B1020;
-  color: #E5E7EB;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
+  background-color: #0b1020;
+  color: #e5e7eb;
 }
 
 #root {
@@ -22,14 +46,14 @@ body {
   border: 1px solid #334155;
   border-radius: 6px;
   background: #111827;
-  color: #E5E7EB;
+  color: #e5e7eb;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
 }
 
 .btn:hover {
-  background: #1F2937;
+  background: #1f2937;
   border-color: #475569;
 }
 
@@ -50,12 +74,12 @@ body {
 }
 
 .btn-danger {
-  background: #DC2626;
-  border-color: #DC2626;
+  background: #dc2626;
+  border-color: #dc2626;
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #B91C1C;
-  border-color: #B91C1C;
+  background: #b91c1c;
+  border-color: #b91c1c;
 }

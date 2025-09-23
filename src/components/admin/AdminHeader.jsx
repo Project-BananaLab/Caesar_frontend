@@ -67,7 +67,6 @@ export default function AdminHeader({ user, onLogout, onOpenSettings }) {
           }}
         >
           <BsGearFill size={16} />
-          설정
         </button>
         
         <button 

@@ -22,16 +22,22 @@ export default function ChatComposer({ value, onChange, onSend, disabled }) {
 
   return (
     <div className="chat-composer" style={{ 
-      padding: '16px 20px', 
+      padding: '16px 0', 
       borderTop: '2px solid #E5E7EB', 
       background: '#FAFAFA',
       boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)'
     }}>
-      <div className="chat-composer-container" style={{ display: 'flex', gap: 12 }}>
+      <div className="chat-composer-container" style={{ 
+        display: 'flex', 
+        gap: 12,
+        width: '100%',
+        margin: '0 auto',
+        padding: '0 20%'
+      }}>
         <textarea
           ref={textareaRef}
           value={value}
-          onChange={e => onChange?.(e.target.value)}
+          onChange={(e) => onChange?.(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="메시지를 입력하고 Enter로 전송(Shift+Enter: 줄바꿈)"
           className="chat-composer-input"
@@ -41,12 +47,14 @@ export default function ChatComposer({ value, onChange, onSend, disabled }) {
             borderRadius: 12, 
             border: '2px solid #E5E7EB', 
             resize: 'none',
-            minHeight: '48px',
+            minHeight: '50px',
             maxHeight: '150px',
             overflow: 'auto',
             fontSize: '15px',
             lineHeight: '1.5',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#64748B #F1F5F9'
           }}
         />
         <button 
@@ -54,15 +62,15 @@ export default function ChatComposer({ value, onChange, onSend, disabled }) {
           disabled={disabled} 
           className="chat-composer-send-button"
           style={{
-            padding: '14px 20px',
-            borderRadius: 12,
+            padding: '12px 24px',
+            background: disabled ? '#9CA3AF' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
             border: 'none',
-            background: disabled ? '#9CA3AF' : 'linear-gradient(135deg,#4F46E5,#06B6D4)',
-            color: '#fff',
+            borderRadius: 8,
+            fontSize: '14px',
+            fontWeight: 600,
             cursor: disabled ? 'not-allowed' : 'pointer',
-            fontSize: '15px',
-            fontWeight: '600',
-            boxShadow: '0 2px 6px rgba(79, 70, 229, 0.3)',
+            transition: 'all 0.3s ease',
             minWidth: '80px'
           }}
         >
