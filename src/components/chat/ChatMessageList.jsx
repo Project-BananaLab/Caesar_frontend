@@ -90,7 +90,7 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
         padding: '12px 16px',
         borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
         background: isUser 
-          ? 'linear-gradient(135deg, #4F46E5, #06B6D4)'
+          ? '#3B82F6'
           : '#F3F4F6',
         color: isUser ? '#FFFFFF' : '#374151',
         wordBreak: 'break-word',
@@ -133,12 +133,14 @@ export default function ChatMessageList({ messages, onPreview, searchQuery, sear
 
   return (
     <div className="chat-message-list" style={{ 
-      width: '60%',
+      width: '100%',
       margin: '0 auto',
       flex: 1, 
       overflowY: 'auto', 
-      padding: '16px',
-      background: '#FFFFFF'
+      padding: '16px 20%',
+      background: '#FFFFFF',
+      scrollbarWidth: 'thin',
+      scrollbarColor: '#CBD5E1 #F1F5F9'
     }}>
       {messages.map((message, index) => {
         const isCurrentMatch = searchMatches.some(match => 
