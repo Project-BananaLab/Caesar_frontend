@@ -423,7 +423,7 @@ export default function AdminPage({ user, onLogout }) {
                     </div>
                   </div>
                   <div className="upload-date">{formatDate(f.createdAt)}</div>
-                  <div style={{ display: 'flex', gap: '4px' }}>
+                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                     <button
                       onClick={() => fileService.downloadFile(f)}
                       style={{

@@ -7,7 +7,7 @@ import { isAdmin } from '../../entities/user/constants'
 import { loadTrashConversations, clearTrash } from '../../entities/conversation/storage'
 import TrashModal from './TrashModal'
 import '../../assets/styles/ChannelSidebar.css'
-import { LuLogOut } from "react-icons/lu";
+import { VscSignOut } from "react-icons/vsc";
 
 export default function ChannelSidebar({ 
   conversations = [], 
@@ -206,7 +206,7 @@ export default function ChannelSidebar({
             </button>
           )}
           <button onClick={onLogout} className="channel-logout-button">
-            로그아웃
+            <VscSignOut size={18} color='#f1f1f1' />
           </button>
         </div>
       </div>
