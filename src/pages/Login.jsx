@@ -16,16 +16,17 @@ export default function Login({ onLogin }) {
   // 회사 ID 입력 처리
   const handleCompanyIdChange = (e) => {
     const value = e.target.value
-    // 영어와 숫자만 허용
-    const englishOnly = value.replace(/[^a-zA-Z0-9]/g, '')
-    setCompanyId(englishOnly)
+    // 한글, 영어, 숫자 허용 (특수문자만 제거)
+    const allowedChars = value.replace(/[^a-zA-Z0-9가-힣]/g, '')
+    setCompanyId(allowedChars)
   }
 
   // 회사 코드 입력 처리
   const handleCompanyCodeChange = (e) => {
     const value = e.target.value
-    // 영어, 숫자, 대문자로 변환
-    const formatted = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+    // 한글, 영어, 숫자 허용하고 영어는 대문자로 변환
+    const allowedChars = value.replace(/[^a-zA-Z0-9가-힣]/g, '')
+    const formatted = allowedChars.replace(/[a-z]/g, (match) => match.toUpperCase())
     setCompanyCode(formatted)
   }
 

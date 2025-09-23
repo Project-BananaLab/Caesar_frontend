@@ -1,5 +1,82 @@
 import React, { useEffect, useRef } from 'react'
 
+// 스켈레톤 로딩 컴포넌트
+function TypingIndicator() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'flex-start',
+        marginBottom: 16,
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '70%',
+          padding: '12px 16px',
+          borderRadius: '18px 18px 18px 4px',
+          background: '#F8F9FA',
+          border: '1px solid #E5E7EB',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: '#6B7280',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              gap: '4px',
+              alignItems: 'center',
+            }}
+          >
+            <div
+              className="typing-dot"
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#9CA3AF',
+                animation: 'typing 1.4s infinite ease-in-out',
+                animationDelay: '0s',
+              }}
+            />
+            <div
+              className="typing-dot"
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#9CA3AF',
+                animation: 'typing 1.4s infinite ease-in-out',
+                animationDelay: '0.2s',
+              }}
+            />
+            <div
+              className="typing-dot"
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#9CA3AF',
+                animation: 'typing 1.4s infinite ease-in-out',
+                animationDelay: '0.4s',
+              }}
+            />
+          </div>
+          <span style={{ fontSize: '14px', fontWeight: '500' }}>AI가 답변을 준비 중입니다...</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function LinkActions({ url, onPreview }) {
   return (
     <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -109,7 +186,7 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
   )
 }
 
-export default function ChatMessageList({ messages, onPreview, searchQuery, searchMatches, currentMatchIndex }) {
+export default function ChatMessageList({ messages, onPreview, searchQuery, searchMatches, currentMatchIndex, isLoading = false }) {
   const bottomRef = useRef(null)
   const messageRefs = useRef([])
   
@@ -162,6 +239,7 @@ export default function ChatMessageList({ messages, onPreview, searchQuery, sear
           </div>
         )
       })}
+      {isLoading && <TypingIndicator />}
       <div ref={bottomRef} />
     </div>
   )
