@@ -45,8 +45,9 @@ export default function SettingsModal({ open, onClose }) {
               ))}
             </section>
 
-            {/* 연동 설정 */}
-            {[{t:'Notion'},{t:'Google'},{t:'Slack'}].map(({t}) => (
+
+            {/* 기타 연동 설정 */}
+            {[{t:'Notion'},{t:'Slack'}].map(({t}) => (
               <section key={t} style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <div style={{ fontWeight: 'bold', color: '#111827' }}>{t}</div>
@@ -58,30 +59,6 @@ export default function SettingsModal({ open, onClose }) {
               </section>
             ))}
 
-            {/* 구글 캘린더 섹션 */}
-            <section style={{ marginBottom: 16 }}>
-              <div style={{ 
-                fontWeight: 'bold', 
-                color: '#111827', 
-                marginBottom: 12,
-                fontSize: '16px'
-              }}>
-                📅 구글 캘린더
-              </div>
-              
-              <div style={{ marginBottom: '16px' }}>
-                <CalendarButton
-                  onSuccess={(events) => {
-                    alert(`캘린더 연결 성공! 오늘 일정 ${events.length}개를 찾았습니다.`)
-                  }}
-                  onError={(error) => {
-                    alert('캘린더 연결 실패: ' + error.message)
-                  }}
-                />
-              </div>
-              
-              <CalendarDisplay />
-            </section>
 
         </div>
       </div>
