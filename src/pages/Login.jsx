@@ -1,23 +1,17 @@
-import React, { useState } from 'react'
-import { getUserRole } from '../entities/user/constants'
+import React, { useState, useEffect } from 'react'
+import GoogleLoginButton from '../components/GoogleLoginButton'
 import '../assets/styles/Login.css'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 export default function Login({ onLogin }) {
   const [activeTab, setActiveTab] = useState('company') // 'company' or 'employee'
   const [companyId, setCompanyId] = useState('')
   const [companyCode, setCompanyCode] = useState('')
-  const [employeeId, setEmployeeId] = useState('')
-  const [employeePassword, setEmployeePassword] = useState('')
   const [error, setError] = useState('')
 
-
-  // 회사 계정 데이터 (ID만으로 인증)
-  const companyAccounts = [
-    { id: 'admin', role: 'admin' },
-    { id: 'caesar', role: 'admin' },
-    { id: 'manager', role: 'user' }
-  ]
-
+  // (예시) 유효 회사코드는 클라이언트에서 간단 체크만 하고, 실제 검증은 백엔드에서 하도록 확장 가능
+  const validCompanyCodes = ['CAESAR2024', 'COMPANY123']
 
   // 회사 ID 입력 처리
   const handleCompanyIdChange = (e) => {
@@ -35,61 +29,68 @@ export default function Login({ onLogin }) {
     setCompanyCode(formatted)
   }
 
-  // 회사용 로그인 처리
-  const handleCompanyLogin = (e) => {
+  // === 회사용 로그인: fetch로 FastAPI 호출 ===
+  const handleCompanyLogin = async (e) => {
     e.preventDefault()
     setError('')
-    
-    const account = companyAccounts.find(acc => acc.id.toLowerCase() === companyId.toLowerCase())
-    
-    if (account) {
-      onLogin({ 
-        username: account.id, 
+
+    try {
+      const res = await fetch(`${API_BASE}/api/company/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // JWT는 헤더로 주고받으므로 credentials 필요 없음
+        body: JSON.stringify({ co_id: companyId }),
+      })
+
+      // 실패 처리
+      if (!res.ok) {
+        let msg = '로그인에 실패했습니다.'
+        try {
+          const err = await res.json()
+          if (err?.detail) msg = err.detail
+          if (err?.message) msg = err.message
+        } catch (_) {}
+        throw new Error(msg)
+      }
+
+      // 성공 처리
+      const data = await res.json()
+      // data = { companyId, coId, coName, role, accessToken }
+
+      // 토큰 저장 (필요 시 만료 시점/리프레시 로직은 나중에 확장)
+      localStorage.setItem('accessToken', data.accessToken)
+      localStorage.setItem('role', data.role || 'admin')
+
+      onLogin({
+        username: data.coId,
         type: 'company',
         isAuthenticated: true,
-        role: account.role
+        role: data.role || 'admin',
+        accessToken: data.accessToken,
       })
-    } else {
-      setError('존재하지 않는 회사 계정입니다.')
+    } catch (err) {
+      setError(err.message || '로그인에 실패했습니다.')
     }
   }
 
-  // 직원 ID 입력 처리
-  const handleEmployeeIdChange = (e) => {
-    const value = e.target.value
-    // 영어와 숫자만 허용
-    const englishOnly = value.replace(/[^a-zA-Z0-9]/g, '')
-    setEmployeeId(englishOnly)
-  }
-
-  // 직원용 로그인 처리 (아이디/비밀번호)
-  const handleEmployeeLogin = (e) => {
-    e.preventDefault()
-    setError('')
-    
-    // 간단한 직원 계정 데이터 (실제로는 서버에서 인증)
-    const employeeAccounts = [
-      { id: 'employee1', password: '1234', name: '김직원' },
-      { id: 'employee2', password: '5678', name: '이직원' },
-      { id: 'test', password: 'test', name: '테스트직원' }
-    ]
-    
-    const account = employeeAccounts.find(acc => 
-      acc.id.toLowerCase() === employeeId.toLowerCase() && 
-      acc.password === employeePassword
-    )
-    
-    if (account) {
-      onLogin({
-        username: account.id,
-        name: account.name,
-        type: 'employee',
-        isAuthenticated: true,
-        role: 'user'
-      })
-    } else {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+  // 직원용 로그인 처리 (구글 + 회사코드)
+  const handleEmployeeGoogleLogin = (googleUser) => {
+    if (!companyCode || !validCompanyCodes.includes(companyCode)) {
+      setError('올바른 회사 코드를 입력해주세요.')
+      return
     }
+
+    console.log('직원 구글 로그인 성공:', googleUser)
+    onLogin({
+      username: googleUser.username,
+      email: googleUser.email,
+      picture: googleUser.picture,
+      type: 'employee',
+      companyCode: companyCode,
+      googleId: googleUser.googleId,
+      isAuthenticated: true,
+      role: 'user'
+    })
   }
 
   return (
@@ -136,67 +137,51 @@ export default function Login({ onLogin }) {
                 />
               </div>
 
-              {error && (
-                <div className="error-message">
-                  {error}
-                </div>
-              )}
+              {error && <div className="error-message">{error}</div>}
 
               <button type="submit" className="login-button company-login">
                 로그인
               </button>
 
+              {/* 필요 없다면 아래 테스트 안내는 제거하세요 */}
               <div className="test-accounts">
-                <div className="test-accounts-title">테스트 계정:</div>
-                <div>admin (관리자)</div>
-                <div>caesar (관리자)</div>
-                <div>manager (일반)</div>
+                <div className="test-accounts-title">테스트 예시:</div>
+                <div>acme / caesar 등 (DB에 존재하는 값)</div>
               </div>
             </form>
           ) : (
             /* 직원용 로그인 */
-            <form onSubmit={handleEmployeeLogin} className="login-form">
+            <div className="employee-login-form">
               <div className="form-group">
-                <label className="form-label">직원 ID</label>
+                <label className="form-label">회사 코드</label>
                 <input
                   type="text"
-                  value={employeeId}
-                  onChange={handleEmployeeIdChange}
-                  placeholder="직원 ID를 입력하세요"
+                  value={companyCode}
+                  onChange={handleCompanyCodeChange}
+                  placeholder="회사 코드를 입력하세요"
                   className="form-input"
                   required
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">비밀번호</label>
-                <input
-                  type="password"
-                  value={employeePassword}
-                  onChange={(e) => setEmployeePassword(e.target.value)}
-                  placeholder="비밀번호를 입력하세요"
-                  className="form-input"
-                  required
+              {error && <div className="error-message">{error}</div>}
+
+              <div className="google-login-section">
+                <GoogleLoginButton 
+                  onSuccess={handleEmployeeGoogleLogin}
+                  onError={(err) => {
+                    console.error('구글 로그인 에러:', err)
+                    setError('구글 로그인에 실패했습니다. 다시 시도해주세요.')
+                  }}
                 />
               </div>
-
-              {error && (
-                <div className="error-message">
-                  {error}
-                </div>
-              )}
-
-              <button type="submit" className="login-button employee-login">
-                로그인
-              </button>
 
               <div className="test-accounts">
-                <div className="test-accounts-title">테스트 계정:</div>
-                <div>employee1 / 1234</div>
-                <div>employee2 / 5678</div>
-                <div>test / test</div>
+                <div className="test-accounts-title">테스트 회사 코드:</div>
+                <div>CAESAR2024</div>
+                <div>COMPANY123</div>
               </div>
-            </form>
+            </div>
           )}
         </div>
       </div>
