@@ -238,6 +238,7 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
         }),
       }}
     >
+
       <div
         style={{
           maxWidth: "70%",
@@ -252,6 +253,19 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
           whiteSpace: "pre-wrap",
         }}
       >
+
+      <div style={{
+        maxWidth: '70%',
+        padding: '12px 16px',
+        borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+        background: isUser 
+          ? '#3B82F6'
+          : '#F3F4F6',
+        color: isUser ? '#FFFFFF' : '#374151',
+        wordBreak: 'break-word',
+        whiteSpace: 'pre-wrap'
+      }}>
+
         {highlightSearchTerm(textWithoutUrls)}
         {!isUser && urls.length > 0 && (
           <div style={{ marginTop: 8 }}>
@@ -295,6 +309,7 @@ export default function ChatMessageList({
   }, [searchMatches, currentMatchIndex]);
 
   return (
+
     <div
       className="chat-message-list"
       style={{
@@ -378,6 +393,18 @@ export default function ChatMessageList({
           </div>
         </div>
       )}
+
+    <div className="chat-message-list" style={{ 
+      width: '100%',
+      margin: '0 auto',
+      flex: 1, 
+      overflowY: 'auto', 
+      padding: '16px 20%',
+      background: '#FFFFFF',
+      scrollbarWidth: 'thin',
+      scrollbarColor: '#CBD5E1 #F1F5F9'
+    }}>
+
       {messages.map((message, index) => {
         const isCurrentMatch = searchMatches.some(
           (match) =>

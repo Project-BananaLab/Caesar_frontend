@@ -7,6 +7,7 @@ import { isAdmin } from '../../entities/user/constants'
 import { loadTrashConversations, clearTrash } from '../../entities/conversation/storage'
 import TrashModal from './TrashModal'
 import '../../assets/styles/ChannelSidebar.css'
+import { LuLogOut } from "react-icons/lu";
 
 export default function ChannelSidebar({ 
   conversations = [], 

@@ -96,3 +96,41 @@
 .search-close-button:hover {
   background: #DC2626;
 }
+
+/* 채팅 메시지 리스트 스크롤바 스타일 */
+.chat-message-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-message-list::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 4px;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb:hover {
+  background: #1F2937;
+}
+
+/* 채팅 입력창 스크롤바 스타일 */
+.chat-composer-input::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-composer-input::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 4px;
+}
+
+.chat-composer-input::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+.chat-composer-input::-webkit-scrollbar-thumb:hover {
+  background: #1F2937;
+}

@@ -70,6 +70,7 @@ export default function SettingsModal({ open, onClose }) {
         </div>
 
         {/* 내용 */}
+
         <div style={{ padding: "20px 40px 20px 40px" }}>
           {/* 계정 */}
           <section style={{ marginBottom: 20 }}>
@@ -104,10 +105,13 @@ export default function SettingsModal({ open, onClose }) {
                       color: "#374151",
                     }}
                   />
+       
+
                 </div>
               )
             )}
           </section>
+
 
           {/* 연동 설정 */}
           {[{ t: "Notion" }, { t: "Google" }, { t: "Slack" }].map(({ t }) => (
@@ -137,6 +141,7 @@ export default function SettingsModal({ open, onClose }) {
               </div>
             </section>
           ))}
+
 
           {/* 구글 캘린더 섹션 */}
           <section style={{ marginBottom: 16 }}>
