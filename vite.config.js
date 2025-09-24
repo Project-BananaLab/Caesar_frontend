@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    host: "0.0.0.0", // 모든 네트워크 인터페이스에서 접근 허용
+    host: "localhost", // localhost로 통일하여 쿠키 충돌 방지
     proxy: {
       "/agent": {
         target: "http://127.0.0.1:8080",
