@@ -4,7 +4,6 @@ import AdminHeader from '../components/admin/AdminHeader'
 import LoadingModal from '../components/admin/LoadingModal'
 import PreviewPanel from '../components/PreviewPanel'
 import IntegrationModal from '../components/admin/IntegrationModal'
-import SettingsModal from '../components/SettingsModal'
 import fileService from '../shared/api/fileService'     // ✅ 실제 API 연동 파일서비스로 교체
 import '../assets/styles/AdminPage.css'
 
@@ -36,7 +35,6 @@ export default function AdminPage({ user, onLogout }) {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [previewFileName, setPreviewFileName] = useState('')
   const [openIntegrations, setOpenIntegrations] = useState(false)
-  const [openSettings, setOpenSettings] = useState(false)
 
   // ✅ 서버에서 받은 파일 목록(표시에 맞게 매핑된 형태)
   const [files, setFiles] = useState([])
@@ -184,7 +182,6 @@ export default function AdminPage({ user, onLogout }) {
       <AdminHeader 
         user={user} 
         onLogout={onLogout} 
-        onOpenSettings={() => setOpenSettings(true)} 
       />
       
       <div className="admin-main">
@@ -203,7 +200,7 @@ export default function AdminPage({ user, onLogout }) {
           <div className="admin-content-section">
             <div className="file-upload-section">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0 }}>파일 관리</h3>
+                <h3 style={{ margin: '0 0 0 10px' }}>파일 업로드</h3>
               </div>
 
               <div
@@ -513,8 +510,7 @@ export default function AdminPage({ user, onLogout }) {
         />
       )}
       <IntegrationModal open={openIntegrations} onClose={() => setOpenIntegrations(false)} />
-      <SettingsModal open={openSettings} onClose={() => setOpenSettings(false)} />
-      <LoadingModal isOpen={apiLoading} message="API 연동 중..." />
+      <LoadingModal isOpen={apiLoading} message="LOADING..." />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import React from 'react'
 import { BsGearFill } from 'react-icons/bs'
 import { isAdmin } from '../../entities/user/constants'
 
-export default function AdminHeader({ user, onLogout, onOpenSettings }) {
+export default function AdminHeader({ user, onLogout }) {
   return (
     <header style={{
       height: 64,
@@ -21,7 +21,7 @@ export default function AdminHeader({ user, onLogout, onOpenSettings }) {
           color: '#111827',
           margin: 0
         }}>
-          Caesar 관리자
+          {user?.companyName || 'Caesar'} 관리자
         </h1>
         {user && (
           <div style={{
@@ -50,24 +50,6 @@ export default function AdminHeader({ user, onLogout, onOpenSettings }) {
           </div>
         )}
         
-        <button
-          onClick={onOpenSettings}
-          style={{
-            padding: '8px 12px',
-            border: '1px solid #D1D5DB',
-            borderRadius: 6,
-            background: '#FFFFFF',
-            color: '#374151',
-            cursor: 'pointer',
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <BsGearFill size={16} />
-        </button>
         
         <button 
           onClick={onLogout} 

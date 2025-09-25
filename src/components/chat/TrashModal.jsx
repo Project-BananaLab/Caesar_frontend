@@ -42,7 +42,7 @@ export default function TrashModal({
   }, [open, onClose])
 
   const loadTrashData = () => {
-    const trashData = loadTrashConversations(user.username)
+    const trashData = loadTrashConversations(user.username, user.companyCode)
     setTrashConversations(trashData)
   }
 
@@ -66,7 +66,7 @@ export default function TrashModal({
 
     setLoading(true)
     try {
-      const restoredConversation = restoreFromTrash(conversationId, user.username)
+      const restoredConversation = restoreFromTrash(conversationId, user.username, user.companyCode)
       if (restoredConversation) {
         loadTrashData()
         onRestore?.(restoredConversation)
@@ -84,7 +84,7 @@ export default function TrashModal({
 
   const handlePermanentDelete = (conversationId, title) => {
     if (window.confirm(`"${title}" 대화를 영구적으로 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
-      const success = permanentDeleteFromTrash(conversationId, user.username)
+      const success = permanentDeleteFromTrash(conversationId, user.username, user.companyCode)
       if (success) {
         loadTrashData()
         onTrashUpdate?.() // 휴지통 개수 업데이트 알림
@@ -102,7 +102,7 @@ export default function TrashModal({
     }
 
     if (window.confirm(`휴지통의 모든 대화(${trashConversations.length}개)를 영구적으로 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
-      const success = clearTrash(user.username)
+      const success = clearTrash(user.username, user.companyCode)
       if (success) {
         setTrashConversations([])
         onTrashUpdate?.() // 휴지통 개수 업데이트 알림

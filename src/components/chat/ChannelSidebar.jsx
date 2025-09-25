@@ -37,7 +37,7 @@ export default function ChannelSidebar({
   // 휴지통 개수 업데이트
   const updateTrashCount = () => {
     if (user?.username) {
-      const trashConversations = loadTrashConversations(user.username)
+      const trashConversations = loadTrashConversations(user.username, user.companyCode)
       setTrashCount(trashConversations.length)
     } else {
       setTrashCount(0)

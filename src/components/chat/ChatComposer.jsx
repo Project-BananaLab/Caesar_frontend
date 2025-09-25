@@ -88,6 +88,7 @@ export default function ChatComposer({ value, onChange, onSend, disabled }) {
           onKeyDown={handleKeyDown}
           placeholder="메시지를 입력하고 Enter로 전송(Shift+Enter: 줄바꿈)"
           className="chat-composer-input"
+          maxLength={4000}
           style={{ 
             flex: 1, 
             padding: '14px 16px', 

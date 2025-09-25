@@ -25,13 +25,20 @@ const isAdminRole = (auth) =>
   ((auth?.role || localStorage.getItem("role") || "").toLowerCase() === "admin");
 
 /** 보호 라우트 */
-function ProtectedRoute({ children, requireAdmin = false }) {
+function ProtectedRoute({ children, requireAdmin = false, blockAdmin = false }) {
   const authData = loadAuthData();
   if (!authData) return <Navigate to="/login" replace />;
 
+  // 관리자만 접근 가능한 페이지
   if (requireAdmin && !isAdminRole(authData)) {
     return <Navigate to="/" replace />;
   }
+
+  // 관리자 접근 차단 (일반 사용자만 접근)
+  if (blockAdmin && isAdminRole(authData)) {
+    return <Navigate to="/admin" replace />;
+  }
+
   return children;
 }
 
@@ -46,7 +53,6 @@ function PublicRoute({ children }) {
 
 function AppContent() {
   const [user, setUser] = useState(loadAuthData());
-  const [agentLoading, setAgentLoading] = useState(false);
   const navigate = useNavigate();
 
   /** ✅ 로그인 처리: 백엔드 role을 그대로 사용 */
@@ -78,15 +84,6 @@ function AppContent() {
     navigate("/login", { replace: true });
   };
 
-  const handleAgentModeChange = async (enabled) => {
-    setAgentLoading(true);
-    try {
-      await new Promise((r) => setTimeout(r, 2000));
-      console.log(`Agent 모드 ${enabled ? "활성화" : "비활성화"}됨`);
-    } finally {
-      setAgentLoading(false);
-    }
-  };
 
   return (
     <>
@@ -102,11 +99,10 @@ function AppContent() {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute blockAdmin={true}>
               <ChatPage
                 user={user}
                 onLogout={handleLogout}
-                onAgentModeChange={handleAgentModeChange}
               />
             </ProtectedRoute>
           }
@@ -125,10 +121,6 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <LoadingModal
-        isOpen={agentLoading}
-        message="Agent 모드를 변경하는 중입니다..."
-      />
     </>
   );
 }

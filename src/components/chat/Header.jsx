@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
-import LoadingModal from "../admin/LoadingModal.jsx";
+import React, { useState, useEffect } from 'react'
+// import llmService from '../../shared/api/llmService.js'
+import LoadingModal from '../admin/LoadingModal.jsx'
+// import PreviewPanel from '../PreviewPanel.jsx'
 
 export default function Header({
   title = "Caesar AI Assistant",
   logo = null,
-  status = "connected",
-  onAgentModeChange = null,
+  // status = "connected",
 }) {
-  const [agentMode, setAgentMode] = useState(false);
-  const [agentStatus, setAgentStatus] = useState({ connected: false });
-  const [isToggling, setIsToggling] = useState(false);
+  // const [showPreview, setShowPreview] = useState(false)
 
   return (
     <>
@@ -39,10 +38,6 @@ export default function Header({
           )}
         </div>
       </header>
-      <LoadingModal
-        isOpen={isToggling}
-        message="Agent 모드를 변경하는 중입니다..."
-      />
     </>
   );
 }

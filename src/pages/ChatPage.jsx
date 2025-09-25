@@ -13,12 +13,11 @@ import {
   loadCurrentChatId,
   moveToTrash,
 } from "../entities/conversation/storage";
-import agentService from "../shared/api/agentService";
 import "../assets/styles/ChatPage.css";
 
 import { MAX_CONVERSATIONS } from "../entities/conversation/constants";
 
-export default function ChatPage({ user, onLogout, onAgentModeChange }) {
+export default function ChatPage({ user, onLogout }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -67,8 +66,8 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
   useEffect(() => {
     if (!user?.username) return;
 
-    const savedConversations = loadConversations(user.username);
-    const savedCurrentId = loadCurrentChatId(user.username);
+    const savedConversations = loadConversations(user.username, user.companyCode);
+    const savedCurrentId = loadCurrentChatId(user.username, user.companyCode);
 
     if (savedConversations.length > 0) {
       setConversations(savedConversations);
@@ -81,7 +80,6 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
       );
       if (currentConv) {
         setMessages(currentConv.messages || []);
-        agentService.loadConversationHistory(currentConv.messages || []);
       }
     }
   }, [user]);
@@ -89,14 +87,14 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
   // 대화 목록이 변경될 때마다 저장
   useEffect(() => {
     if (conversations.length > 0 && user?.username) {
-      saveConversations(conversations, user.username);
+      saveConversations(conversations, user.username, user.companyCode);
     }
   }, [conversations, user]);
 
   // 현재 대화 ID가 변경될 때마다 저장
   useEffect(() => {
     if (currentId !== "default" && user?.username) {
-      saveCurrentChatId(currentId, user.username);
+      saveCurrentChatId(currentId, user.username, user.companyCode);
     }
   }, [currentId, user]);
 
@@ -143,7 +141,6 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
     setMessages(validMessages);
 
     if (conv) {
-      agentService.loadConversationHistory(validMessages);
     }
   }
 
@@ -162,7 +159,7 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
     }
 
     // 휴지통으로 이동
-    const success = moveToTrash(conversationToDelete, user?.username);
+    const success = moveToTrash(conversationToDelete, user?.username, user?.companyCode);
     if (!success) {
       alert("대화 삭제에 실패했습니다.");
       return;
@@ -181,7 +178,6 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
     if (currentId === id) {
       setCurrentId("default");
       setMessages([]);
-      agentService.clearConversationHistory(user?.username || "default");
       if (user?.username) {
         saveCurrentChatId("default", user.username);
       }
@@ -271,10 +267,10 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
 
     try {
       console.log("💬 에이전트에게 질문 보내는 중:", userInput);
-      const result = await agentService.processMessage(
-        userInput,
-        user?.username || "default"
-      );
+      // AI 응답 시뮬레이션
+      const result = {
+        response: "죄송합니다. AI 서비스가 일시적으로 중단되었습니다."
+      };
       console.log("🤖 에이전트 응답 받음:", result);
 
       const botMsg = {
@@ -370,15 +366,8 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
       />
       <div className="chat-main">
         <Header
-          logo="/caesar_logo_hori.png"
+          logo="/src/assets/imgs/caesar_logo_hori.png"
           status={busy ? "thinking…" : "connected"}
-          onAgentModeChange={(newMode) => {
-            // 에이전트 모드 변경 시 대화 내역 유지
-            // agentService는 내부적으로 대화 내역을 유지하므로 별도 처리 불필요
-            if (onAgentModeChange) {
-              onAgentModeChange(newMode);
-            }
-          }}
         />
         <ChatMessageList
           messages={messages}

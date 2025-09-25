@@ -72,27 +72,58 @@ export default function PreviewPanel({ url, onClose, fileName = '' }) {
     <div style={{
       position: 'fixed',
       top: 0,
+      left: 0,
       right: 0,
-      width: '50vw',
-      height: '100vh',
-      background: '#FFFFFF',
-      boxShadow: '-6px 0 20px rgba(0,0,0,0.15)',
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.7)',
+      backdropFilter: 'blur(8px)',
       display: 'flex',
-      flexDirection: 'column',
-      zIndex: 50
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
+      padding: '20px'
     }}>
       <div style={{
+        width: '90vw',
+        maxWidth: '1200px',
+        height: '90vh',
+        background: '#FFFFFF',
+        borderRadius: '12px',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        padding: '10px 12px',
-        borderBottom: '1px solid #E5E7EB',
-        background: '#F8FAFC'
+        flexDirection: 'column',
+        overflow: 'hidden'
       }}>
-        <button onClick={onClose} aria-label="close" style={{ padding: '6px 10px', border: '1px solid #CBD5E1', borderRadius: 6, background: '#FFF', cursor: 'pointer' }}>✕</button>
-      </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 20px',
+          borderBottom: '1px solid #E5E7EB',
+          background: '#F8FAFC'
+        }}>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937' }}>파일 미리보기</div>
+          <button onClick={onClose} aria-label="close" style={{ 
+            padding: '8px', 
+            border: 'none', 
+            borderRadius: '6px', 
+            background: '#F3F4F6', 
+            cursor: 'pointer',
+            fontSize: '16px',
+            color: '#6B7280',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#E5E7EB'
+            e.target.style.color = '#374151'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = '#F3F4F6'
+            e.target.style.color = '#6B7280'
+          }}>✕</button>
+        </div>
 
-      <div ref={containerRef} style={{ flex: 1, overflow: 'auto', background: '#F1F5F9', padding: '16px' }}>
+        <div ref={containerRef} style={{ flex: 1, overflow: 'auto', background: '#F1F5F9', padding: '20px' }}>
         <div>
           {fileType === 'image' && (
             <img 
@@ -307,6 +338,7 @@ export default function PreviewPanel({ url, onClose, fileName = '' }) {
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
