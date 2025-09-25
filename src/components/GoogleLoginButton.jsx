@@ -67,8 +67,10 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
 
         const googleUserData = {
           googleId: userInfo.id,
+          google_user_id: userInfo.id, // 중복이지만 일관성을 위해 추가
           email: userInfo.email,
           username: userInfo.name,
+          full_name: userInfo.name, // 백엔드 호환을 위한 필드
           picture: userInfo.picture,
         };
         setCookie("google_user_info", JSON.stringify(googleUserData), 7);
@@ -97,7 +99,7 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
         if (onSuccess) {
           const finalLoginData = {
             type: "google",
-            ...googleUserData,
+            ...googleUserData, // 이미 google_user_id가 포함됨
             accessToken: access_token, // Access Token도 함께 전달
             employeeData: employeeData, // 백엔드에서 받은 직원 정보
           };
