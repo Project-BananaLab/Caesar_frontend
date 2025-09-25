@@ -271,9 +271,12 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
 
     try {
       console.log("💬 에이전트에게 질문 보내는 중:", userInput);
+      console.log("🔍 현재 사용자 정보:", user);
+      const userId = user?.google_user_id || user?.googleId || user?.username || "default";
+      console.log("🆔 에이전트에 전달할 User ID:", userId);
       const result = await agentService.processMessage(
         userInput,
-        user?.username || "default"
+        userId
       );
       console.log("🤖 에이전트 응답 받음:", result);
 

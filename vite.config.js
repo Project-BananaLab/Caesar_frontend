@@ -9,7 +9,7 @@ export default defineConfig({
     host: "localhost", // localhost로 통일하여 쿠키 충돌 방지
     proxy: {
       "/agent": {
-        target: "http://127.0.0.1:8080",
+        target: "http://127.0.0.1:8000",
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
