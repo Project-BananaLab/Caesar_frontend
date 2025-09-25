@@ -290,13 +290,22 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
       };
       setMessages((m) => [...m, tempUserMsg]);
 
+
       // AI 응답과 함께 백엔드에 채팅 저장
       console.log("💬 백엔드에 메시지 전송 중:", userInput);
 
       // Agent 서비스로 AI 응답 받기
       const agentResult = await agentService.processMessage(
+
+    try {
+      console.log("💬 에이전트에게 질문 보내는 중:", userInput);
+      console.log("🔍 현재 사용자 정보:", user);
+      const userId = user?.google_user_id || user?.googleId || user?.username || "default";
+      console.log("🆔 에이전트에 전달할 User ID:", userId);
+      const result = await agentService.processMessage(
+
         userInput,
-        user?.username || "default"
+        userId
       );
       console.log("🤖 에이전트 응답 받음:", agentResult);
 

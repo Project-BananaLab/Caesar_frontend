@@ -35,29 +35,22 @@ export default function Login({ onLogin }) {
     }
   }, []);
 
-  // (예시) 유효 회사코드는 클라이언트에서 간단 체크만 하고, 실제 검증은 백엔드에서 하도록 확장 가능
+  // (예시) 직원용 테스트 회사코드
   const validCompanyCodes = ["CAESAR2024", "COMPANY123"];
 
-  // 회사 ID 입력 처리
+  // 회사 ID 입력 처리 (한글/영문/숫자만 허용)
   const handleCompanyIdChange = (e) => {
-    const value = e.target.value;
-    // 한글, 영어, 숫자 허용 (특수문자만 제거)
-    const allowedChars = value.replace(/[^a-zA-Z0-9가-힣]/g, "");
-    setCompanyId(allowedChars);
+    const allowed = e.target.value.replace(/[^a-zA-Z0-9가-힣]/g, "");
+    setCompanyId(allowed);
   };
 
-  // 회사 코드 입력 처리
+  // 회사 코드 입력 처리 (한글/영문/숫자, 영문은 대문자화)
   const handleCompanyCodeChange = (e) => {
-    const value = e.target.value;
-    // 한글, 영어, 숫자 허용하고 영어는 대문자로 변환
-    const allowedChars = value.replace(/[^a-zA-Z0-9가-힣]/g, "");
-    const formatted = allowedChars.replace(/[a-z]/g, (match) =>
-      match.toUpperCase()
-    );
-    setCompanyCode(formatted);
+    const allowed = e.target.value.replace(/[^a-zA-Z0-9가-힣]/g, "");
+    setCompanyCode(allowed.replace(/[a-z]/g, (m) => m.toUpperCase()));
   };
 
-  // === 회사용 로그인: fetch로 FastAPI 호출 ===
+  // === 회사용 로그인 ===
   const handleCompanyLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -67,7 +60,7 @@ export default function Login({ onLogin }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // JWT는 헤더로 주고받으므로 credentials 필요 없음
-        body: JSON.stringify({ co_id: companyId }),
+        body: JSON.stringify({ coId: companyId }),
       });
 
       // 실패 처리
@@ -77,31 +70,31 @@ export default function Login({ onLogin }) {
           const err = await res.json();
           if (err?.detail) msg = err.detail;
           if (err?.message) msg = err.message;
-        } catch (_) {}
+        } catch {}
         throw new Error(msg);
       }
 
-      // 성공 처리
+      // ✅ 백엔드 응답 예: { companyId, coId, coName, role, accessToken }
       const data = await res.json();
-      // data = { companyId, coId, coName, role, accessToken }
 
-      // 토큰 저장 (필요 시 만료 시점/리프레시 로직은 나중에 확장)
+      // 로컬에 최소 정보 저장(가드에서 쓸 수 있게)
       localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("role", data.role || "admin");
+      localStorage.setItem("role", (data.role || "user").toLowerCase());
 
+      // 상위(App)로 로그인 완료 전달
       onLogin({
         username: data.coId,
-        type: "company",
-        isAuthenticated: true,
-        role: data.role || "admin",
+        type: "company",                // ← 회사 로그인임을 명확히
+        role: (data.role || "user").toLowerCase(), // ← 백엔드 role 그대로 신뢰
         accessToken: data.accessToken,
+        isAuthenticated: true,
       });
     } catch (err) {
       setError(err.message || "로그인에 실패했습니다.");
     }
   };
 
-  // 직원용 로그인 처리 (구글 + 회사코드)
+  // === 직원용(구글+회사코드드) 로그인 ===
   const handleEmployeeGoogleLogin = (googleUser) => {
     if (!companyCode || !validCompanyCodes.includes(companyCode)) {
       setError("올바른 회사 코드를 입력해주세요.");
@@ -113,7 +106,7 @@ export default function Login({ onLogin }) {
       email: googleUser.email,
       picture: googleUser.picture,
       type: "employee",
-      companyCode: companyCode,
+      companyCode,
       googleId: googleUser.googleId,
       isAuthenticated: true,
       role: "user",
@@ -129,19 +122,13 @@ export default function Login({ onLogin }) {
         <div className="login-tabs">
           <button
             className={`login-tab ${activeTab === "company" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("company");
-              setError("");
-            }}
+            onClick={() => { setActiveTab("company"); setError(""); }}
           >
             회사용 로그인
           </button>
           <button
             className={`login-tab ${activeTab === "employee" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("employee");
-              setError("");
-            }}
+            onClick={() => { setActiveTab("employee"); setError(""); }}
           >
             직원용 로그인
           </button>
@@ -170,7 +157,7 @@ export default function Login({ onLogin }) {
                 로그인
               </button>
 
-              {/* 필요 없다면 아래 테스트 안내는 제거하세요 */}
+              {/* 필요 없다면 아래 테스트 안내는 제거 */}
               <div className="test-accounts">
                 <div className="test-accounts-title">테스트 예시:</div>
                 <div>acme / caesar 등 (DB에 존재하는 값)</div>

@@ -65,7 +65,22 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
         const userInfo = await userInfoResponse.json();
         console.log("✅ Google 사용자 정보:", userInfo);
 
+
         // 3. 백엔드 서버에 사용자 정보 전송 및 직원 정보 받기 (먼저 백엔드 호출)
+
+        const googleUserData = {
+          googleId: userInfo.id,
+          google_user_id: userInfo.id, // 중복이지만 일관성을 위해 추가
+          email: userInfo.email,
+          username: userInfo.name,
+          full_name: userInfo.name, // 백엔드 호환을 위한 필드
+          picture: userInfo.picture,
+        };
+        setCookie("google_user_info", JSON.stringify(googleUserData), 7);
+        console.log("✅ 사용자 정보 쿠키 저장 완료.");
+
+        // 3. 백엔드 서버에 사용자 정보 전송 및 직원 정보 받기 (코드 2의 로직)
+
         const backendResponse = await fetch(
           "http://127.0.0.1:8000/employees/google-login",
           {
@@ -114,7 +129,7 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
         if (onSuccess) {
           const finalLoginData = {
             type: "google",
-            ...googleUserData,
+            ...googleUserData, // 이미 google_user_id가 포함됨
             accessToken: access_token, // Access Token도 함께 전달
             employeeData: employeeData, // 백엔드에서 받은 직원 정보
           };
