@@ -65,6 +65,9 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
         const userInfo = await userInfoResponse.json();
         console.log("✅ Google 사용자 정보:", userInfo);
 
+
+        // 3. 백엔드 서버에 사용자 정보 전송 및 직원 정보 받기 (먼저 백엔드 호출)
+
         const googleUserData = {
           googleId: userInfo.id,
           google_user_id: userInfo.id, // 중복이지만 일관성을 위해 추가
@@ -77,6 +80,7 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
         console.log("✅ 사용자 정보 쿠키 저장 완료.");
 
         // 3. 백엔드 서버에 사용자 정보 전송 및 직원 정보 받기 (코드 2의 로직)
+
         const backendResponse = await fetch(
           "http://127.0.0.1:8000/employees/google-login",
           {
@@ -95,6 +99,32 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
         const employeeData = await backendResponse.json();
         console.log("✅ 백엔드 응답 (직원 정보):", employeeData);
 
+        // employee_id를 포함한 완전한 사용자 정보 생성
+        const googleUserData = {
+          googleId: userInfo.id,
+          email: userInfo.email,
+          username: userInfo.name,
+          picture: userInfo.picture,
+          employeeId: employeeData.id, // 백엔드에서 받은 employee_id 추가
+        };
+
+        // 쿠키에 사용자 정보 저장
+        setCookie("google_user_info", JSON.stringify(googleUserData), 7);
+
+        // localStorage에 중요한 정보 저장 (새로고침 대응)
+        localStorage.setItem("employee_id", employeeData.id.toString());
+        localStorage.setItem("google_access_token", access_token);
+        localStorage.setItem(
+          "google_user_info",
+          JSON.stringify(googleUserData)
+        );
+
+        console.log("✅ 사용자 정보 저장 완료 (쿠키 + localStorage):", {
+          employeeId: employeeData.id,
+          accessToken: access_token ? "존재" : "없음",
+          userInfo: googleUserData,
+        });
+
         // 4. 상위 컴포넌트에 최종 데이터 전달
         if (onSuccess) {
           const finalLoginData = {
@@ -104,7 +134,10 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
             employeeData: employeeData, // 백엔드에서 받은 직원 정보
           };
           onSuccess(finalLoginData);
-          console.log("✅ 상위 컴포넌트로 최종 로그인 데이터 전달:", finalLoginData);
+          console.log(
+            "✅ 상위 컴포넌트로 최종 로그인 데이터 전달:",
+            finalLoginData
+          );
         }
       } catch (error) {
         console.error("❌ 구글 로그인 처리 중 오류 발생:", error);

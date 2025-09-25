@@ -47,9 +47,59 @@ function PublicRoute({ children }) {
 function AppContent() {
   const [user, setUser] = useState(loadAuthData());
   const [agentLoading, setAgentLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const navigate = useNavigate();
 
-  /** ✅ 로그인 처리: 백엔드 role을 그대로 사용 */
+
+  // 앱 초기화 시 자동 로그인 체크
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        // localStorage에서 사용자 정보 확인
+        const storedEmployeeId = localStorage.getItem("employee_id");
+        const storedAccessToken = localStorage.getItem("google_access_token");
+        const storedUserInfo = localStorage.getItem("google_user_info");
+
+        if (storedEmployeeId && storedAccessToken && storedUserInfo) {
+          const parsedUserInfo = JSON.parse(storedUserInfo);
+
+          // 자동 로그인 처리
+          const authData = {
+            type: "google",
+            googleId: parsedUserInfo.googleId,
+            employeeId: parseInt(storedEmployeeId),
+            email: parsedUserInfo.email,
+            username: parsedUserInfo.username,
+            picture: parsedUserInfo.picture,
+            accessToken: storedAccessToken,
+            loginTime: new Date().toISOString(),
+            role: "user",
+          };
+
+          setUser(authData);
+          setIsAuthenticated(true);
+          saveAuthData(authData);
+
+          console.log("✅ 자동 로그인 성공:", authData);
+        } else {
+          console.log("📝 저장된 로그인 정보 없음");
+        }
+      } catch (error) {
+        console.error("❌ 자동 로그인 실패:", error);
+        // 오류 시 저장된 정보 정리
+        localStorage.removeItem("employee_id");
+        localStorage.removeItem("google_access_token");
+        localStorage.removeItem("google_user_info");
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  // 로그인 처리
+
   const handleLogin = (loginData) => {
     console.log("로그인 처리:", loginData);
 
@@ -75,7 +125,18 @@ function AppContent() {
   const handleLogout = () => {
     setUser(null);
     clearAuthData();
-    navigate("/login", { replace: true });
+
+
+    // localStorage 정리
+    localStorage.removeItem("employee_id");
+    localStorage.removeItem("google_access_token");
+    localStorage.removeItem("google_user_info");
+
+    console.log("✅ 로그아웃 완료 - 모든 저장된 정보 정리됨");
+    navigate("/login");
+
+    
+
   };
 
   const handleAgentModeChange = async (enabled) => {
@@ -88,8 +149,14 @@ function AppContent() {
     }
   };
 
+  // 초기화 중이면 로딩 화면 표시
+  if (isInitializing) {
+    return <LoadingModal message="앱 초기화 중..." />;
+  }
+
   return (
     <>
+      {agentLoading && <LoadingModal message="Agent 모드 변경 중..." />}
       <Routes>
         <Route
           path="/login"
