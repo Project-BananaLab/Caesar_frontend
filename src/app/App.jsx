@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -22,7 +22,7 @@ import "../assets/styles/App.css";
 
 /** ✅ 이 파일 내에서 role만 보고 admin 판별 (백엔드 값 신뢰) */
 const isAdminRole = (auth) =>
-  ((auth?.role || localStorage.getItem("role") || "").toLowerCase() === "admin");
+  (auth?.role || localStorage.getItem("role") || "").toLowerCase() === "admin";
 
 /** 보호 라우트 */
 function ProtectedRoute({ children, requireAdmin = false }) {
@@ -50,7 +50,6 @@ function AppContent() {
   const [isInitializing, setIsInitializing] = useState(true);
   const navigate = useNavigate();
 
-
   // 앱 초기화 시 자동 로그인 체크
   useEffect(() => {
     const initializeAuth = async () => {
@@ -77,7 +76,6 @@ function AppContent() {
           };
 
           setUser(authData);
-          setIsAuthenticated(true);
           saveAuthData(authData);
 
           console.log("✅ 자동 로그인 성공:", authData);
@@ -106,7 +104,7 @@ function AppContent() {
     const authData = {
       ...loginData,
       loginTime: new Date().toISOString(),
-      type: loginData.type || "company",          // 의미 있는 값만 저장
+      type: loginData.type || "company", // 의미 있는 값만 저장
       role: (loginData.role || "user").toLowerCase(), // 백엔드 값 그대로
     };
 
@@ -126,7 +124,6 @@ function AppContent() {
     setUser(null);
     clearAuthData();
 
-
     // localStorage 정리
     localStorage.removeItem("employee_id");
     localStorage.removeItem("google_access_token");
@@ -134,9 +131,6 @@ function AppContent() {
 
     console.log("✅ 로그아웃 완료 - 모든 저장된 정보 정리됨");
     navigate("/login");
-
-    
-
   };
 
   const handleAgentModeChange = async (enabled) => {
