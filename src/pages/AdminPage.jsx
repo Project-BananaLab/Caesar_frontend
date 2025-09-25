@@ -85,7 +85,7 @@ export default function AdminPage({ user, onLogout }) {
   // 파일을 대기열에 추가
   const addFilesToQueue = (newFiles) => {
     const fileArray = Array.from(newFiles)
-    const SUPPORTED = ['pdf','docx','xlsx']
+    const SUPPORTED = ['pdf','docx','xlsx','csv','txt']
     const queueItems = fileArray
       .filter(file => {
         const ext = file.name.split('.').pop().toLowerCase()
@@ -222,13 +222,14 @@ export default function AdminPage({ user, onLogout }) {
                   <div>
                     <div className="drop-icon">📁</div>
                     <div>여기로 드래그하거나 클릭해서 파일을 선택하세요</div>
+                    <div style={{fontSize: '12px', color: '#bebebe', fontWeight: '400', paddingTop: '8px'}}>지원 파일 확장자: .pdf, .docx, .xlsx, .csv, .txt</div>
                   </div>
                 )}
                 <input 
                   ref={inputRef} 
                   type="file" 
                   multiple 
-                  accept=".pdf,.docx,.xlsx"
+                  accept=".pdf,.docx,.xlsx,.csv,.txt"
                   onChange={onFileSelect}
                   style={{ display: 'none' }} 
                 />
