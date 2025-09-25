@@ -4,7 +4,7 @@ import LoadingModal from "../components/admin/LoadingModal";
 import PreviewPanel from "../components/PreviewPanel";
 import IntegrationModal from "../components/admin/IntegrationModal";
 import SettingsModal from "../components/SettingsModal";
-import fileService from "../shared/api/fileService";
+import fileService from "../shared/api/channel";
 import "../assets/styles/AdminPage.css";
 
 const typeEmoji = {
