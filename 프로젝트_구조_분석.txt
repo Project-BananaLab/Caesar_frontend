@@ -1,0 +1,179 @@
+# Caesar Frontend 프로젝트 구조 분석
+
+## 📁 전체 프로젝트 구조
+```
+caesar-frontend/
+├── 📁 dist/                    # 빌드 결과물
+├── 📁 node_modules/            # 의존성 패키지
+├── 📁 public/                  # 정적 파일
+├── 📁 src/                     # 소스 코드
+├── 📄 package.json             # 프로젝트 설정
+├── 📄 vite.config.js           # Vite 빌드 설정
+├── 📄 eslint.config.js         # ESLint 설정
+├── 📄 index.html               # HTML 진입점
+└── 📄 README.md                # 프로젝트 문서
+```
+
+## 🎯 아키텍처 패턴: Feature-Sliced Design (FSD)
+
+### 📁 src/ 구조 분석
+```
+src/
+├── 📁 app/                     # 애플리케이션 진입점
+│   └── App.jsx                 # 메인 앱 컴포넌트
+├── 📁 pages/                   # 페이지 레벨 컴포넌트
+│   ├── AdminPage.jsx           # 관리자 페이지
+│   ├── ChatPage.jsx            # 채팅 페이지
+│   └── Login.jsx               # 로그인 페이지
+├── 📁 components/              # 재사용 가능한 컴포넌트
+│   ├── 📁 admin/               # 관리자 관련 컴포넌트
+│   ├── 📁 chat/                # 채팅 관련 컴포넌트
+│   └── 공통 컴포넌트들
+├── 📁 entities/                # 비즈니스 엔티티
+│   ├── 📁 conversation/        # 대화 관련 로직
+│   └── 📁 user/                # 사용자 관련 로직
+├── 📁 shared/                  # 공유 유틸리티
+│   ├── 📁 api/                 # API 서비스
+│   └── 📁 config/              # 설정 파일
+├── 📁 assets/                  # 정적 자원
+│   └── 📁 styles/              # CSS 파일
+└── main.jsx                    # 애플리케이션 진입점
+```
+
+## 🔧 주요 디렉토리 상세 분석
+
+### 1. 📁 app/ - 애플리케이션 계층
+- **App.jsx**: 전체 애플리케이션의 루트 컴포넌트
+- 라우팅, 전역 상태 관리, 프로바이더 설정
+
+### 2. 📁 pages/ - 페이지 계층
+- **Login.jsx**: 로그인 페이지 (회사용/직원용 탭)
+- **ChatPage.jsx**: 메인 채팅 페이지 (465줄, 가장 복잡한 페이지)
+- **AdminPage.jsx**: 관리자 전용 페이지
+
+### 3. 📁 components/ - 컴포넌트 계층
+
+#### 📁 admin/ - 관리자 컴포넌트
+- **AdminHeader.jsx**: 관리자 페이지 헤더
+- **IntegrationModal.jsx**: 통합 설정 모달
+- **LoadingModal.jsx**: 로딩 모달
+
+#### 📁 chat/ - 채팅 컴포넌트
+- **ChannelSidebar.jsx**: 채널/대화 사이드바 (390줄)
+- **ChatComposer.jsx**: 메시지 입력 컴포넌트 (138줄)
+- **ChatMessageList.jsx**: 메시지 목록 (246줄)
+- **Header.jsx**: 채팅 페이지 헤더
+- **TrashModal.jsx**: 휴지통 관리 모달
+
+#### 공통 컴포넌트
+- **GoogleLoginButton.jsx**: 구글 로그인 버튼
+- **PreviewPanel.jsx**: 파일 미리보기 패널 (347줄)
+- **SettingsModal.jsx**: 설정 모달
+
+### 4. 📁 entities/ - 엔티티 계층
+
+#### 📁 conversation/ - 대화 엔티티
+- **constants.js**: 대화 관련 상수
+- **storage.js**: 대화 저장/불러오기 로직 (146줄)
+
+#### 📁 user/ - 사용자 엔티티
+- **auth.js**: 인증 관련 로직
+- **constants.js**: 사용자 관련 상수
+
+### 5. 📁 shared/ - 공유 계층
+
+#### 📁 api/ - API 서비스
+- **agentService.js**: AI 에이전트 서비스 (287줄)
+- **calendarService.js**: 캘린더 서비스
+- **fileService.js**: 파일 서비스
+- **llmService.js**: LLM 서비스
+- **openaiService.js**: OpenAI 서비스
+
+#### 📁 config/ - 설정
+- **api.js**: API 설정
+- **app.js**: 앱 설정
+
+### 6. 📁 assets/ - 정적 자원
+#### 📁 styles/ - 스타일시트
+- **AdminPage.css**: 관리자 페이지 스타일
+- **App.css**: 전체 앱 스타일
+- **ChannelSidebar.css**: 사이드바 스타일 (507줄)
+- **ChatPage.css**: 채팅 페이지 스타일
+- **LoadingModal.css**: 로딩 모달 스타일
+- **Login.css**: 로그인 페이지 스타일
+- **TrashModal.css**: 휴지통 모달 스타일
+
+## 🎨 기술 스택
+
+### 프론트엔드
+- **React 18**: UI 라이브러리
+- **Vite**: 빌드 도구
+- **ESLint**: 코드 품질 도구
+
+### 주요 라이브러리 (추정)
+- **@react-oauth/google**: 구글 OAuth
+- **jwt-decode**: JWT 토큰 디코딩
+- **React Icons**: 아이콘 라이브러리
+
+## 📊 코드 복잡도 분석
+
+### 가장 큰 파일들
+1. **ChatPage.jsx** (465줄) - 메인 채팅 페이지
+2. **PreviewPanel.jsx** (347줄) - 파일 미리보기
+3. **ChannelSidebar.jsx** (390줄) - 채널 사이드바
+4. **ChatMessageList.jsx** (246줄) - 메시지 목록
+5. **agentService.js** (287줄) - AI 에이전트 서비스
+
+### 주요 기능별 분류
+- **채팅 시스템**: ChatPage, ChatComposer, ChatMessageList, ChannelSidebar
+- **인증 시스템**: Login, GoogleLoginButton
+- **관리자 기능**: AdminPage, IntegrationModal
+- **파일 관리**: PreviewPanel, fileService
+- **AI 서비스**: agentService, llmService, openaiService
+
+## 🔄 데이터 플로우
+
+### 로그인 플로우
+1. **Login.jsx** → **GoogleLoginButton.jsx**
+2. 구글 OAuth → JWT 디코딩
+3. 사용자 정보 저장 → **ChatPage.jsx**로 이동
+
+### 채팅 플로우
+1. **ChatPage.jsx** → **ChatComposer.jsx**
+2. 메시지 입력 → **agentService.js**
+3. AI 응답 → **ChatMessageList.jsx**
+
+### 대화 관리 플로우
+1. **ChannelSidebar.jsx** → 대화 목록 관리
+2. **entities/conversation/storage.js** → 로컬 스토리지
+3. 회사 코드별 대화 분리 저장
+
+## 🎯 아키텍처 특징
+
+### 장점
+1. **Feature-Sliced Design**: 명확한 계층 구조
+2. **컴포넌트 분리**: 재사용성과 유지보수성
+3. **타입 안정성**: 일관된 네이밍 컨벤션
+4. **모듈화**: 기능별 명확한 분리
+
+### 개선 가능한 부분
+1. **상태 관리**: 전역 상태 관리 라이브러리 부재
+2. **타입 시스템**: TypeScript 미사용
+3. **테스트**: 테스트 코드 부재
+4. **에러 처리**: 전역 에러 핸들링 부재
+
+## 📝 개발 가이드
+
+### 새 컴포넌트 추가 시
+1. 기능에 따라 적절한 계층 선택 (pages/components/entities)
+2. 관련 스타일은 assets/styles/에 추가
+3. API 호출은 shared/api/에 서비스 추가
+
+### 파일 네이밍 컨벤션
+- **컴포넌트**: PascalCase (예: ChatComposer.jsx)
+- **서비스**: camelCase (예: agentService.js)
+- **스타일**: PascalCase (예: ChatPage.css)
+- **상수**: camelCase (예: constants.js)
+
+이 구조는 중대형 React 애플리케이션에 적합한 Feature-Sliced Design 패턴을 따르고 있으며, 
+확장성과 유지보수성을 고려한 잘 설계된 아키텍처입니다.
