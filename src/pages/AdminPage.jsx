@@ -44,6 +44,22 @@ export default function AdminPage({ user, onLogout }) {
   const [uploadQueue, setUploadQueue] = useState([])
   const inputRef = useRef(null)
 
+  // ─────────────────────────────────────────────────────────────
+  // 파일 종류 라벨링(요청 사양에 맞게)
+  const getFileTypeLabel = (ext) => {
+    const e = (ext || '').toLowerCase()
+    const map = {
+      pdf: 'PDF',
+      docx: 'Word',
+      xlsx: 'Excel',
+      txt: '텍스트 파일',
+      csv: 'CSV 파일',
+    }
+    // 매핑되지 않은 확장자면 확장자를 대문자로 노출
+    return map[e] || (e ? e.toUpperCase() : '-')
+  }
+  // ─────────────────────────────────────────────────────────────
+
   // 컴포넌트 마운트 시 파일 목록 로드
   useEffect(() => {
     refreshList()
@@ -369,9 +385,9 @@ export default function AdminPage({ user, onLogout }) {
               {filteredFiles.length > 0 && (
                 <div className="file-list-header">
                   <div>이름</div>
-                  <div>추천 이유</div>
-                  <div>소유자</div>
-                  <div>위치</div>
+                  <div>파일 종류</div>
+                  <div>파일 크기</div>
+                  <div>상태</div>
                   <div>업로드 날짜</div>
                   <div>작업</div>
                 </div>
@@ -391,13 +407,9 @@ export default function AdminPage({ user, onLogout }) {
                       {f.name}
                     </button>
                   </div>
-                  <div>{f.reason}</div>
-                  <div>{f.owner}</div>
+                  <div className="upload-date">{getFileTypeLabel(f.extension)}</div>
+                  <div className="upload-date">{fileService.formatFileSize?.(f.size) || '-'}</div>
                   <div>
-                    {f.location}
-                    <div style={{fontSize: '11px', color: '#9CA3AF'}}>
-                      {fileService.formatFileSize(f.size)}
-                    </div>
                     <div style={{
                       marginTop: 4,
                       display: 'inline-block',
