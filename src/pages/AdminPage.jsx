@@ -209,7 +209,7 @@ export default function AdminPage({ user, onLogout }) {
               className="api-button"
               disabled={apiLoading}
             >
-              API 연동하기
+              API 설정하기
             </button>
           </div>
 
