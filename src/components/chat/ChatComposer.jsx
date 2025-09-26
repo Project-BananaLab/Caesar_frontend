@@ -100,24 +100,25 @@ export default function ChatComposer({ value, onChange, onSend, disabled }) {
           onKeyDown={handleKeyDown}
           placeholder=""
           className="chat-composer-input"
-          style={{
-            flex: 1,
-            padding: "14px 16px",
-            borderRadius: 12,
-            border: "2px solid #E5E7EB",
-            resize: "none",
-            height: "55px",
-            minHeight: "55px",
-            maxHeight: "150px",
-            overflow: "hidden",
-            fontSize: "15px",
-            lineHeight: "1.5",
-            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-            scrollbarWidth: "thin",
-            scrollbarColor: "#64748B #F1F5F9",
-            wordWrap: "break-word",
-            whiteSpace: "pre-wrap",
-            fontFamily: "inherit",
+          maxLength={4000}
+          style={{ 
+            flex: 1, 
+            padding: '14px 16px', 
+            borderRadius: 12, 
+            border: '2px solid #E5E7EB', 
+            resize: 'none',
+            height: '55px',
+            minHeight: '55px',
+            maxHeight: '150px',
+            overflow: 'hidden',
+            fontSize: '15px',
+            lineHeight: '1.5',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#64748B #F1F5F9',
+            wordWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'inherit'
           }}
         />
         <button

@@ -18,7 +18,7 @@ import "../assets/styles/ChatPage.css";
 
 import { MAX_CONVERSATIONS } from "../entities/conversation/constants";
 
-export default function ChatPage({ user, onLogout, onAgentModeChange }) {
+export default function ChatPage({ user, onLogout }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -207,7 +207,6 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
     setMessages(validMessages);
 
     if (conv) {
-      agentService.loadConversationHistory(validMessages);
     }
   }
 
@@ -415,15 +414,8 @@ export default function ChatPage({ user, onLogout, onAgentModeChange }) {
       />
       <div className="chat-main">
         <Header
-          logo="/caesar_logo_hori.png"
+          logo="/src/assets/imgs/caesar_logo_hori.png"
           status={busy ? "thinking…" : "connected"}
-          onAgentModeChange={(newMode) => {
-            // 에이전트 모드 변경 시 대화 내역 유지
-            // agentService는 내부적으로 대화 내역을 유지하므로 별도 처리 불필요
-            if (onAgentModeChange) {
-              onAgentModeChange(newMode);
-            }
-          }}
         />
         <ChatMessageList
           messages={messages}

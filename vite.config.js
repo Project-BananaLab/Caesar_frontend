@@ -7,6 +7,10 @@ export default defineConfig({
   server: {
     port: 3000,
     host: "localhost", // localhost로 통일하여 쿠키 충돌 방지
+    headers: {
+      'Cross-Origin-Opener-Policy': 'unsafe-none',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none'
+    },
     proxy: {
       "/agent": {
         target: "http://127.0.0.1:8000",

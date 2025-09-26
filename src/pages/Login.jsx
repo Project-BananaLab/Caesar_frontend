@@ -40,15 +40,20 @@ export default function Login({ onLogin }) {
 
   // 회사 ID 입력 처리 (한글/영문/숫자만 허용)
   const handleCompanyIdChange = (e) => {
-    const allowed = e.target.value.replace(/[^a-zA-Z0-9가-힣]/g, "");
-    setCompanyId(allowed);
-  };
+    const value = e.target.value
+    // 한글, 영어, 숫자 허용 (특수문자만 제거)
+    const allowedChars = value.replace(/[^a-zA-Z0-9ㄱ-힣]/g, '')
+    setCompanyId(allowedChars)
+  }
 
   // 회사 코드 입력 처리 (한글/영문/숫자, 영문은 대문자화)
   const handleCompanyCodeChange = (e) => {
-    const allowed = e.target.value.replace(/[^a-zA-Z0-9가-힣]/g, "");
-    setCompanyCode(allowed.replace(/[a-z]/g, (m) => m.toUpperCase()));
-  };
+    const value = e.target.value
+    // 한글, 영어, 숫자 허용하고 영어는 대문자로 변환
+    const allowedChars = value.replace(/[^a-zA-Z0-9ㄱ-힣]/g, '')
+    const formatted = allowedChars.replace(/[a-z]/g, (match) => match.toUpperCase())
+    setCompanyCode(formatted)
+  }
 
   // === 회사용 로그인 ===
   const handleCompanyLogin = async (e) => {
@@ -83,7 +88,8 @@ export default function Login({ onLogin }) {
 
       // 상위(App)로 로그인 완료 전달
       onLogin({
-        username: data.coId,
+        username: data.coId,           // 회사 ID (co_id)
+        companyName: data.coName,      // 회사명 (co_name)
         type: "company",                // ← 회사 로그인임을 명확히
         role: (data.role || "user").toLowerCase(), // ← 백엔드 role 그대로 신뢰
         accessToken: data.accessToken,

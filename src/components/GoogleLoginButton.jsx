@@ -5,7 +5,7 @@ import { setCookie, getCookie } from "../shared/utils/cookies.js"; // 가상 경
 export default function MergedGoogleLoginButton({ onSuccess, onError }) {
   const [hasAccessToken, setHasAccessToken] = useState(false);
 
-  // 코드 1의 상세한 스코프 배열 (중복 제거됨)
+  // 기본적인 스코프만 사용 (개발/테스트용)
   const googleScopes = [
     "profile",
     "email",
