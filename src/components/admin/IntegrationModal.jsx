@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { updateNotionApiKey } from '../../shared/api/companyService.js'
 
 export default function IntegrationModal({ open, onClose }) {
   const [apiKey, setApiKey] = useState('')
@@ -23,13 +24,13 @@ export default function IntegrationModal({ open, onClose }) {
   async function handleSave() {
     setSaving(true)
     try {
-      // API 키 저장 로직
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await updateNotionApiKey(apiKey)
       alert('Notion API 키가 저장되었습니다.')
+      setApiKey('') // 저장 후 입력 필드 초기화
       onClose()
     } catch (error) {
       console.error('API 키 저장 실패:', error)
-      alert('API 키 저장에 실패했습니다.')
+      alert(error.message || 'API 키 저장에 실패했습니다.')
     } finally {
       setSaving(false)
     }
