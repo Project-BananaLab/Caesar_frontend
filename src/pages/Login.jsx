@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import React, { useState, useEffect } from "react";
 import GoogleLoginButton from "../components/GoogleLoginButton";
 import { setCookie } from "../shared/utils/cookies.js";
@@ -29,16 +30,12 @@ export default function Login({ onLogin }) {
 
         // URL 해시 제거
         window.location.hash = "";
-
         alert("✅ 추가 권한이 성공적으로 승인되었습니다!");
       }
     }
   }, []);
 
-  // (예시) 직원용 테스트 회사코드
-  const validCompanyCodes = ["CAESAR2024", "COMPANY123"];
-
-  // 회사 ID 입력 처리 (한글/영문/숫자만 허용)
+  // 회사 ID 입력 처리
   const handleCompanyIdChange = (e) => {
     const value = e.target.value
     // 한글, 영어, 숫자 허용 (특수문자만 제거)
@@ -46,10 +43,9 @@ export default function Login({ onLogin }) {
     setCompanyId(allowedChars)
   }
 
-  // 회사 코드 입력 처리 (한글/영문/숫자, 영문은 대문자화)
+  // 회사 코드 입력 처리 (영문은 대문자화)
   const handleCompanyCodeChange = (e) => {
     const value = e.target.value
-    // 한글, 영어, 숫자 허용하고 영어는 대문자로 변환
     const allowedChars = value.replace(/[^a-zA-Z0-9ㄱ-힣]/g, '')
     const formatted = allowedChars.replace(/[a-z]/g, (match) => match.toUpperCase())
     setCompanyCode(formatted)
@@ -64,7 +60,6 @@ export default function Login({ onLogin }) {
       const res = await fetch(`${API_BASE}/api/company/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // JWT는 헤더로 주고받으므로 credentials 필요 없음
         body: JSON.stringify({ coId: companyId }),
       });
 
@@ -79,10 +74,9 @@ export default function Login({ onLogin }) {
         throw new Error(msg);
       }
 
-      // ✅ 백엔드 응답 예: { companyId, coId, coName, role, accessToken }
+      // 백엔드 응답 예: { companyId, coId, coName, role, accessToken }
       const data = await res.json();
-
-      // 로컬에 최소 정보 저장(가드에서 쓸 수 있게)
+      // 로컬에 최소 정보 저장
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("role", (data.role || "user").toLowerCase());
 
@@ -90,8 +84,8 @@ export default function Login({ onLogin }) {
       onLogin({
         username: data.coId,           // 회사 ID (co_id)
         companyName: data.coName,      // 회사명 (co_name)
-        type: "company",                // ← 회사 로그인임을 명확히
-        role: (data.role || "user").toLowerCase(), // ← 백엔드 role 그대로 신뢰
+        type: "company",
+        role: (data.role || "user").toLowerCase(),
         accessToken: data.accessToken,
         isAuthenticated: true,
       });
@@ -100,23 +94,25 @@ export default function Login({ onLogin }) {
     }
   };
 
-  // === 직원용(구글+회사코드드) 로그인 ===
-  const handleEmployeeGoogleLogin = (googleUser) => {
-    if (!companyCode || !validCompanyCodes.includes(companyCode)) {
-      setError("올바른 회사 코드를 입력해주세요.");
-      return;
+  // === 직원용(구글) 로그인: 버튼이 최종 데이터(finalLoginData)를 넘겨줌 ===
+  const handleEmployeeGoogleLogin = (finalLoginData) => {
+    // finalLoginData = { type:'google', googleId, email, username, picture, accessToken, employeeData:{id, company_id,...} }
+    try {
+      onLogin({
+        username: finalLoginData.username,
+        email: finalLoginData.email,
+        picture: finalLoginData.picture,
+        type: "employee",
+        companyCode,
+        googleId: finalLoginData.googleId,
+        isAuthenticated: true,
+        role: "user",
+        employeeId: finalLoginData.employeeData?.id,
+      });
+    } catch (e) {
+      console.error(e);
+      setError("로그인 처리 중 문제가 발생했습니다.");
     }
-
-    onLogin({
-      username: googleUser.username,
-      email: googleUser.email,
-      picture: googleUser.picture,
-      type: "employee",
-      companyCode,
-      googleId: googleUser.googleId,
-      isAuthenticated: true,
-      role: "user",
-    });
   };
 
   return (
@@ -163,7 +159,6 @@ export default function Login({ onLogin }) {
                 로그인
               </button>
 
-              {/* 필요 없다면 아래 테스트 안내는 제거 */}
               <div className="test-accounts">
                 <div className="test-accounts-title">테스트 예시:</div>
                 <div>acme / caesar 등 (DB에 존재하는 값)</div>
@@ -188,18 +183,19 @@ export default function Login({ onLogin }) {
 
               <div className="google-login-section">
                 <GoogleLoginButton
-                  onSuccess={handleEmployeeGoogleLogin}
+                  companyCode={companyCode}                // 회사코드 전달
+                  onSuccess={handleEmployeeGoogleLogin}    // 최종 데이터 수신
                   onError={(err) => {
                     console.error("구글 로그인 에러:", err);
-                    setError("구글 로그인에 실패했습니다. 다시 시도해주세요.");
+                    setError(err?.message || "구글 로그인에 실패했습니다. 다시 시도해주세요.");
                   }}
                 />
               </div>
 
               <div className="test-accounts">
                 <div className="test-accounts-title">테스트 회사 코드:</div>
-                <div>CAESAR2024</div>
-                <div>COMPANY123</div>
+                <div>CAESAR</div>
+                <div>ACME</div>
               </div>
             </div>
           )}
