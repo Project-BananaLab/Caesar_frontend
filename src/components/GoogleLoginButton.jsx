@@ -1,11 +1,14 @@
+// src/components/GoogleLoginButton.jsx
 import React, { useState, useEffect } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
-import { setCookie, getCookie } from "../shared/utils/cookies.js"; // 가상 경로
+import { setCookie, getCookie } from "../shared/utils/cookies.js";
 
-export default function MergedGoogleLoginButton({ onSuccess, onError }) {
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
+export default function MergedGoogleLoginButton({ onSuccess, onError, companyCode }) {
   const [hasAccessToken, setHasAccessToken] = useState(false);
 
-  // 기본적인 스코프만 사용 (개발/테스트용)
+  // 상세 스코프 배열
   const googleScopes = [
     "profile",
     "email",
@@ -43,102 +46,70 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
     flow: "implicit", // Access Token을 직접 받기 위한 설정
     onSuccess: async (tokenResponse) => {
       try {
-        console.log("✅ 구글 OAuth 응답:", tokenResponse);
         const { access_token, scope } = tokenResponse;
+        console.log("✅ 구글 OAuth 응답:", tokenResponse);
 
-        // 1. Access Token 및 스코프 쿠키에 저장 (코드 1의 로직)
+        // 1. Access Token 및 스코프 쿠키에 저장
         setCookie("google_access_token", access_token, 1);
         setCookie("google_scopes", scope, 7);
         setHasAccessToken(true);
-        console.log("✅ Access Token 및 스코프 저장 완료.");
 
-        // 2. 구글 API를 통해 사용자 정보 가져오기 (코드 1의 로직)
-        const userInfoResponse = await fetch(
-          "https://www.googleapis.com/oauth2/v2/userinfo",
-          {
-            headers: { Authorization: `Bearer ${access_token}` },
-          }
-        );
-        if (!userInfoResponse.ok) {
-          throw new Error("Google 사용자 정보 조회 실패");
-        }
+        // 구글 사용자 정보
+        const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+          headers: { Authorization: `Bearer ${access_token}` },
+        });
+        if (!userInfoResponse.ok) throw new Error("Google 사용자 정보 조회 실패");
         const userInfo = await userInfoResponse.json();
         console.log("✅ Google 사용자 정보:", userInfo);
 
-        // 3. 백엔드 서버에 사용자 정보 전송 및 직원 정보 받기
-        const backendResponse = await fetch(
-          "http://127.0.0.1:8000/employees/google-login",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              google_user_id: userInfo.id,
-              email: userInfo.email,
-              full_name: userInfo.name,
-            }),
-          }
-        );
+        // 백엔드로 가입/로그인 요청 (회사코드 포함)
+        const backendResponse = await fetch(`${API_BASE}/employees/google-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            company_code: companyCode,          // ★ 중요: 회사코드 함께 전송
+            google_user_id: userInfo.id,
+            email: userInfo.email,
+            full_name: userInfo.name,
+          }),
+        });
         if (!backendResponse.ok) {
-          throw new Error("백엔드 서버 응답 오류");
+          const err = await backendResponse.json().catch(() => ({}));
+          throw new Error(err?.detail || err?.message || "백엔드 서버 응답 오류");
         }
         const employeeData = await backendResponse.json();
         console.log("✅ 백엔드 응답 (직원 정보):", employeeData);
 
-        // 4. employee_id를 포함한 완전한 사용자 정보 생성
-        const googleUserData = {
+        // 상위로 넘길 통합 데이터
+        const finalLoginData = {
+          type: "google",
           googleId: userInfo.id,
           google_user_id: userInfo.id, // 중복이지만 일관성을 위해 추가
           email: userInfo.email,
           username: userInfo.name,
-          full_name: userInfo.name, // 백엔드 호환을 위한 필드
+          full_name: userInfo.name,    // 백엔드 호환을 위한 필드
           picture: userInfo.picture,
-          employeeId: employeeData.id,
+          accessToken: access_token,
+          employeeData, // { id, company_id, ... }
         };
 
         // 쿠키에 사용자 정보 저장
-        setCookie("google_user_info", JSON.stringify(googleUserData), 7);
-        console.log("✅ 사용자 정보 쿠키 저장 완료.");
-
+        setCookie("google_user_info", JSON.stringify(finalLoginData), 7);
+        
         // localStorage에 중요한 정보 저장 (새로고침 대응)
-        localStorage.setItem("employee_id", employeeData.id.toString());
+        localStorage.setItem("employee_id", String(employeeData.id));
         localStorage.setItem("google_access_token", access_token);
-        localStorage.setItem(
-          "google_user_info",
-          JSON.stringify(googleUserData)
-        );
+        localStorage.setItem("google_user_info", JSON.stringify(finalLoginData));
 
-        console.log("✅ 사용자 정보 저장 완료 (쿠키 + localStorage):", {
-          employeeId: employeeData.id,
-          accessToken: access_token ? "존재" : "없음",
-          userInfo: googleUserData,
-        });
-
-        // 5. 상위 컴포넌트에 최종 데이터 전달
-        if (onSuccess) {
-          const finalLoginData = {
-            type: "google",
-            ...googleUserData, // 이미 google_user_id가 포함됨
-            accessToken: access_token, // Access Token도 함께 전달
-            employeeData: employeeData, // 백엔드에서 받은 직원 정보
-          };
-          onSuccess(finalLoginData);
-          console.log(
-            "✅ 상위 컴포넌트로 최종 로그인 데이터 전달:",
-            finalLoginData
-          );
-        }
+        onSuccess?.(finalLoginData);
       } catch (error) {
         console.error("❌ 구글 로그인 처리 중 오류 발생:", error);
-        if (onError) {
-          onError(error);
-        }
+        onError?.(error);
       }
     },
     onError: (error) => {
       console.error("❌ 구글 로그인 실패:", error);
-      if (onError) {
-        onError(error);
-      }
+      onError?.(error);
     },
   });
 
@@ -146,16 +117,11 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
     <div style={{ width: "100%" }}>
       <button
         onClick={() => login()}
-        className="login-button company-login" // 필요에 따라 클래스명 수정
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "8px",
-        }}
+        className="login-button company-login"
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+        disabled={!companyCode} // 회사코드 없으면 비활성화(선택)
+        title={!companyCode ? "회사 코드를 입력하세요" : ""}
       >
-        {/* 구글 로고 SVG 등을 추가하면 더 좋습니다. */}
         Google 계정으로 로그인
       </button>
     </div>
