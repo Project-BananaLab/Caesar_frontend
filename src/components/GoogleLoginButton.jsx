@@ -8,7 +8,28 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
   // 기본적인 스코프만 사용 (개발/테스트용)
   const googleScopes = [
     "profile",
-    "email"
+    "email",
+    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/drive.appdata",
+    "https://www.googleapis.com/auth/drive.appfolder",
+    "https://www.googleapis.com/auth/drive.install",
+    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/drive.apps.readonly",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/drive.activity",
+    "https://www.googleapis.com/auth/drive.activity.readonly",
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/calendar.calendarlist",
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/calendar.events.owned",
+    "https://www.googleapis.com/auth/drive.activity",
+    "https://www.googleapis.com/auth/drive.activity.readonly",
+    "https://www.googleapis.com/auth/drive.admin.labels",
+    "https://www.googleapis.com/auth/drive.admin.labels.readonly",
+    "https://www.googleapis.com/auth/drive.labels",
+    "https://www.googleapis.com/auth/drive.labels.readonly",
   ];
 
   // 페이지 로드 시 쿠키에서 Access Token 확인
@@ -20,12 +41,6 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
   const login = useGoogleLogin({
     scope: [...new Set(googleScopes)].join(" "), // 중복 스코프 제거 후 사용
     flow: "implicit", // Access Token을 직접 받기 위한 설정
-    onError: (error) => {
-      console.error("❌ 구글 로그인 실패:", error);
-      if (onError) {
-        onError(error);
-      }
-    },
     onSuccess: async (tokenResponse) => {
       try {
         console.log("✅ 구글 OAuth 응답:", tokenResponse);
@@ -50,53 +65,67 @@ export default function MergedGoogleLoginButton({ onSuccess, onError }) {
         const userInfo = await userInfoResponse.json();
         console.log("✅ Google 사용자 정보:", userInfo);
 
+        // 3. 백엔드 서버에 사용자 정보 전송 및 직원 정보 받기
+        const backendResponse = await fetch(
+          "http://127.0.0.1:8000/employees/google-login",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              google_user_id: userInfo.id,
+              email: userInfo.email,
+              full_name: userInfo.name,
+            }),
+          }
+        );
+        if (!backendResponse.ok) {
+          throw new Error("백엔드 서버 응답 오류");
+        }
+        const employeeData = await backendResponse.json();
+        console.log("✅ 백엔드 응답 (직원 정보):", employeeData);
+
+        // 4. employee_id를 포함한 완전한 사용자 정보 생성
         const googleUserData = {
           googleId: userInfo.id,
+          google_user_id: userInfo.id, // 중복이지만 일관성을 위해 추가
           email: userInfo.email,
           username: userInfo.name,
+          full_name: userInfo.name, // 백엔드 호환을 위한 필드
           picture: userInfo.picture,
+          employeeId: employeeData.id,
         };
+
+        // 쿠키에 사용자 정보 저장
         setCookie("google_user_info", JSON.stringify(googleUserData), 7);
         console.log("✅ 사용자 정보 쿠키 저장 완료.");
 
-        // 3. 백엔드 서버에 사용자 정보 전송 및 직원 정보 받기 (임시 비활성화)
-        // const backendResponse = await fetch(
-        //   "http://127.0.0.1:8000/employees/google-login",
-        //   {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify({
-        //       google_user_id: userInfo.id,
-        //       email: userInfo.email,
-        //       full_name: userInfo.name,
-        //     }),
-        //   }
-        // );
-        // if (!backendResponse.ok) {
-        //   throw new Error("백엔드 서버 응답 오류");
-        // }
-        // const employeeData = await backendResponse.json();
-        // console.log("✅ 백엔드 응답 (직원 정보):", employeeData);
-        
-        // 임시 더미 데이터
-        const employeeData = {
-          id: userInfo.id,
-          email: userInfo.email,
-          name: userInfo.name,
-          role: "user"
-        };
-        console.log("✅ 임시 직원 데이터:", employeeData);
+        // localStorage에 중요한 정보 저장 (새로고침 대응)
+        localStorage.setItem("employee_id", employeeData.id.toString());
+        localStorage.setItem("google_access_token", access_token);
+        localStorage.setItem(
+          "google_user_info",
+          JSON.stringify(googleUserData)
+        );
 
-        // 4. 상위 컴포넌트에 최종 데이터 전달
+        console.log("✅ 사용자 정보 저장 완료 (쿠키 + localStorage):", {
+          employeeId: employeeData.id,
+          accessToken: access_token ? "존재" : "없음",
+          userInfo: googleUserData,
+        });
+
+        // 5. 상위 컴포넌트에 최종 데이터 전달
         if (onSuccess) {
           const finalLoginData = {
             type: "google",
-            ...googleUserData,
+            ...googleUserData, // 이미 google_user_id가 포함됨
             accessToken: access_token, // Access Token도 함께 전달
             employeeData: employeeData, // 백엔드에서 받은 직원 정보
           };
           onSuccess(finalLoginData);
-          console.log("✅ 상위 컴포넌트로 최종 로그인 데이터 전달:", finalLoginData);
+          console.log(
+            "✅ 상위 컴포넌트로 최종 로그인 데이터 전달:",
+            finalLoginData
+          );
         }
       } catch (error) {
         console.error("❌ 구글 로그인 처리 중 오류 발생:", error);

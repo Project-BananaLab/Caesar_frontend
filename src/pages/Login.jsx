@@ -107,7 +107,6 @@ export default function Login({ onLogin }) {
       return;
     }
 
-    console.log("직원 구글 로그인 성공:", googleUser);
     onLogin({
       username: googleUser.username,
       email: googleUser.email,
