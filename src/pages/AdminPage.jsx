@@ -1,111 +1,33 @@
+// src/pages/AdminPage.jsx
+import React, { useState, useRef, useEffect } from 'react'
+import AdminHeader from '../components/admin/AdminHeader'
+import LoadingModal from '../components/admin/LoadingModal'
+import PreviewPanel from '../components/PreviewPanel'
+import IntegrationModal from '../components/admin/IntegrationModal'
+import SettingsModal from '../components/SettingsModal'
+import fileService from '../shared/api/fileService'     // ✅ 실제 API 연동 파일서비스로 교체
+import '../assets/styles/AdminPage.css'
 
-import React, { useState, useRef, useEffect } from "react";
-import AdminHeader from "../components/admin/AdminHeader";
-import LoadingModal from "../components/admin/LoadingModal";
-import PreviewPanel from "../components/PreviewPanel";
-import IntegrationModal from "../components/admin/IntegrationModal";
-import SettingsModal from "../components/SettingsModal";
-import fileService from "../shared/api/channel";
-import "../assets/styles/AdminPage.css";
+import { ADMIN_PAGE_SIZE } from '../shared/config/api'
+import { MdOutlineFileDownload } from "react-icons/md"
+import { FaRegTrashCan } from "react-icons/fa6"
 
-const typeEmoji = {
-  // 이미지 파일
-  png: "🖼️",
-  jpg: "🖼️",
-  jpeg: "🖼️",
-  jfif: "🖼️",
-  gif: "🖼️",
-  tiff: "🖼️",
-  tif: "🖼️",
-  psd: "🖼️",
-  bmp: "🖼️",
-  webp: "🖼️",
-  svg: "🖼️",
-  ico: "🖼️",
-  raw: "🖼️",
+const ITEMS_PER_PAGE = ADMIN_PAGE_SIZE
 
-  // 문서 파일
-  pdf: "📄",
-  doc: "📝",
-  docx: "📝",
-  hwp: "📝",
-  hwpx: "📝",
-  odt: "📝",
-  rtf: "📝",
-
-  // 스프레드시트
-  xls: "📊",
-  xlsx: "📊",
-  xlsm: "📊",
-  xlsb: "📊",
-  ods: "📊",
-  csv: "📊",
-
-  // 프레젠테이션
-  ppt: "📈",
-  pptx: "📈",
-  pptm: "📈",
-  ppsx: "📈",
-  odp: "📈",
-
-  // 텍스트 파일
-  txt: "📝",
-  md: "📝",
-  markdown: "📝",
-  log: "📝",
-
-  // 데이터 파일
-  json: "📄",
-  xml: "📄",
-  yaml: "📄",
-  yml: "📄",
-  ini: "📄",
-  cfg: "📄",
-
-  // 압축 파일
-  zip: "🗜️",
-  rar: "🗜️",
-  "7z": "🗜️",
-  tar: "🗜️",
-  gz: "🗜️",
-
-  // 비디오 파일
-  mp4: "🎥",
-  avi: "🎥",
-  mov: "🎥",
-  wmv: "🎥",
-  flv: "🎥",
-  mkv: "🎥",
-
-  // 오디오 파일
-  mp3: "🎵",
-  wav: "🎵",
-  flac: "🎵",
-  aac: "🎵",
-  ogg: "🎵",
-  wma: "🎵",
-
-  // 코드 파일
-  js: "💻",
-  ts: "💻",
-  jsx: "💻",
-  tsx: "💻",
-  html: "💻",
-  css: "💻",
-  py: "💻",
-  java: "💻",
-  cpp: "💻",
-  c: "💻",
-  cs: "💻",
-  php: "💻",
-};
-
-import { ADMIN_PAGE_SIZE } from "../shared/config/api";
-import { MdOutlineFileDownload } from "react-icons/md";
-import { FaRegTrashCan } from "react-icons/fa6";
-
-const ITEMS_PER_PAGE = ADMIN_PAGE_SIZE;
-
+const typeEmoji = { 
+  png:'🖼️', jpg:'🖼️', jpeg:'🖼️', jfif:'🖼️', gif:'🖼️', tiff:'🖼️', tif:'🖼️', 
+  psd:'🖼️', bmp:'🖼️', webp:'🖼️', svg:'🖼️', ico:'🖼️', raw:'🖼️',
+  pdf:'📄', doc:'📝', docx:'📝', hwp:'📝', hwpx:'📝', odt:'📝', rtf:'📝',
+  xls:'📊', xlsx:'📊', xlsm:'📊', xlsb:'📊', ods:'📊', csv:'📊',
+  ppt:'📈', pptx:'📈', pptm:'📈', ppsx:'📈', odp:'📈',
+  txt:'📝', md:'📝', markdown:'📝', log:'📝',
+  json:'📄', xml:'📄', yaml:'📄', yml:'📄', ini:'📄', cfg:'📄',
+  zip:'🗜️', rar:'🗜️', '7z':'🗜️', tar:'🗜️', gz:'🗜️',
+  mp4:'🎥', avi:'🎥', mov:'🎥', wmv:'🎥', flv:'🎥', mkv:'🎥',
+  mp3:'🎵', wav:'🎵', flac:'🎵', aac:'🎵', ogg:'🎵', wma:'🎵',
+  js:'💻', ts:'💻', jsx:'💻', tsx:'💻', html:'💻', css:'💻', 
+  py:'💻', java:'💻', cpp:'💻', c:'💻', cs:'💻', php:'💻'
+}
 
 export default function AdminPage({ user, onLogout }) {
   const [isDragging, setDragging] = useState(false)

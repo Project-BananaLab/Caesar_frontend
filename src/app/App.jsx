@@ -96,8 +96,7 @@ function AppContent() {
     initializeAuth();
   }, []);
 
-  // 로그인 처리
-
+  // 어드미 로그인 처리
   const handleLogin = (loginData) => {
     console.log("로그인 처리:", loginData);
 
@@ -130,7 +129,7 @@ function AppContent() {
     localStorage.removeItem("google_user_info");
 
     console.log("✅ 로그아웃 완료 - 모든 저장된 정보 정리됨");
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   const handleAgentModeChange = async (enabled) => {
