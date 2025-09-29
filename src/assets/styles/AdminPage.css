@@ -292,3 +292,13 @@
     gap: 8px;
   }
 }
+
+/* Admin 페이지 상단 헤더(Topbar)에 그림자 강제 적용 */
+.admin-page > header {
+  position: sticky;           /* 스크롤 시 상단 고정(선택) */
+  top: 0;
+  z-index: 40;
+  background: #fff;           /* 그림자 대비용 */
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12); /* 좀 더 진하게 */
+  border-bottom: none !important;               /* 선 제거 */
+}

@@ -21,7 +21,7 @@ export default function AdminHeader({ user, onLogout }) {
           color: '#111827',
           margin: 0
         }}>
-          {user?.companyName || 'Caesar'} 관리자
+          {user?.companyName}
         </h1>
         {user && (
           <div style={{
