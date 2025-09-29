@@ -5,6 +5,8 @@ import LoadingModal from '../components/admin/LoadingModal'
 import PreviewPanel from '../components/PreviewPanel'
 import IntegrationModal from '../components/admin/IntegrationModal'
 import fileService from '../shared/api/fileService'     // ✅ 실제 API 연동 파일서비스로 교체
+import ThinSidebar from '../components/admin/ThinSidebar';
+import logoSrc from '../assets/imgs/caesar_logo.png';
 import '../assets/styles/AdminPage.css'
 
 import { ADMIN_PAGE_SIZE } from '../shared/config/api'
@@ -194,336 +196,341 @@ export default function AdminPage({ user, onLogout }) {
   }
 
   return (
-    <div className="admin-page">
-      <AdminHeader 
-        user={user} 
-        onLogout={onLogout} 
-      />
+    <>
+      <ThinSidebar logoSrc={logoSrc} /> {/* 얇은 사이드바 */}
+      <div className="admin-page with-sidebar">  {/* 사이드바 여백 클래스 추가 */}
+        <div className="admin-page">
+          <AdminHeader 
+            user={user} 
+            onLogout={onLogout} 
+          />
+          
+          <div className="admin-main">
+            <div className="admin-content">
+              <div className="admin-header">
+                <h2>관리자님 환영합니다!</h2>
+                <button 
+                  onClick={handleApiIntegration} 
+                  className="api-button"
+                  disabled={apiLoading}
+                >
+                  API 설정하기
+                </button>
+              </div>
       
-      <div className="admin-main">
-        <div className="admin-content">
-          <div className="admin-header">
-            <h2>관리자님 환영합니다!</h2>
-            <button 
-              onClick={handleApiIntegration} 
-              className="api-button"
-              disabled={apiLoading}
-            >
-              API 설정하기
-            </button>
-          </div>
-
-          <div className="admin-content-section">
-            <div className="file-upload-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: '0 0 0 10px' }}>파일 업로드</h3>
-              </div>
-
-              <div
-                className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}
-                onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={onDrop}
-                onClick={() => inputRef.current?.click()}
-              >
-                {uploading ? (
-                  <div>
-                    <div className="drop-icon">⏳</div>
-                    <div>파일 업로드 중...</div>
+              <div className="admin-content-section">
+                <div className="file-upload-section">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ margin: '0 0 0 10px' }}>파일 업로드</h3>
                   </div>
-                ) : (
-                  <div>
-                    <div className="drop-icon">📁</div>
-                    <div>여기로 드래그하거나 클릭해서 파일을 선택하세요</div>
-                    <div style={{fontSize: '12px', color: '#bebebe', fontWeight: '400', paddingTop: '8px'}}>지원 파일 확장자: .pdf, .docx, .xlsx, .csv, .txt</div>
-                  </div>
-                )}
-                <input 
-                  ref={inputRef} 
-                  type="file" 
-                  multiple 
-                  accept=".pdf,.docx,.xlsx,.csv,.txt"
-                  onChange={onFileSelect}
-                  style={{ display: 'none' }} 
-                />
-              </div>
-              
-              {/* 업로드 대기열 */}
-              {uploadQueue.length > 0 && (
-                <div className="upload-queue-section">
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    marginBottom: '16px' 
-                  }}>
-                    <h4 style={{ margin: 0, color: '#111827', fontWeight: '700' }}>
-                      업로드 대기 중인 파일 ({uploadQueue.length}개)
-                    </h4>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => setUploadQueue([])}
-                        style={{
-                          padding: '6px 12px',
-                          background: '#6B7280',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        전체 취소
-                      </button>
-                      <button
-                        onClick={executeUpload}
-                        disabled={uploading}
-                        style={{
-                          padding: '8px 16px',
-                          background: uploading ? '#9CA3AF' : '#2563EB',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: uploading ? 'not-allowed' : 'pointer',
-                          fontWeight: '600',
-                          fontSize: '14px'
-                        }}
-                      >
-                        {uploading ? '업로드 중...' : `${uploadQueue.length}개 파일 업로드`}
-                      </button>
-                    </div>
+      
+                  <div
+                    className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}
+                    onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={onDrop}
+                    onClick={() => inputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <div>
+                        <div className="drop-icon">⏳</div>
+                        <div>파일 업로드 중...</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="drop-icon">📁</div>
+                        <div>여기로 드래그하거나 클릭해서 파일을 선택하세요</div>
+                        <div style={{fontSize: '12px', color: '#bebebe', fontWeight: '400', paddingTop: '8px'}}>지원 파일 확장자: .pdf, .docx, .xlsx, .csv, .txt</div>
+                      </div>
+                    )}
+                    <input 
+                      ref={inputRef} 
+                      type="file" 
+                      multiple 
+                      accept=".pdf,.docx,.xlsx,.csv,.txt"
+                      onChange={onFileSelect}
+                      style={{ display: 'none' }} 
+                    />
                   </div>
                   
-                  <div className="upload-queue-list">
-                    {uploadQueue.map(item => (
-                      <div key={item.id} className="upload-queue-item">
-                        <button
-                          onClick={() => removeFromQueue(item.id)}
-                          style={{
-                            padding: '6px 8px',
-                            background: '#FEE2E2',
-                            border: '1px solid #FECACA',
-                            cursor: 'pointer',
-                            color: '#DC2626',
-                            fontSize: '12px',
-                            borderRadius: '4px',
-                            fontWeight: '600',
-                            minWidth: '50px'
-                          }}
-                          title="대기열에서 제거"
-                        >
-                          ✕ 삭제
-                        </button>
-                        <span className="file-emoji" style={{ fontSize: '16px', marginLeft: '8px' }}>
-                          {typeEmoji[item.extension] || '📎'}
-                        </span>
-                        <div style={{ fontWeight: '600', fontSize: '14px', color: '#111827', flex: 1, marginLeft: '8px' }}>
-                          {item.name}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: '500', minWidth: '80px', textAlign: 'right' }}>
-                          {fileService.formatFileSize(item.size)}
+                  {/* 업로드 대기열 */}
+                  {uploadQueue.length > 0 && (
+                    <div className="upload-queue-section">
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        marginBottom: '16px' 
+                      }}>
+                        <h4 style={{ margin: 0, color: '#111827', fontWeight: '700' }}>
+                          업로드 대기 중인 파일 ({uploadQueue.length}개)
+                        </h4>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => setUploadQueue([])}
+                            style={{
+                              padding: '6px 12px',
+                              background: '#6B7280',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            전체 취소
+                          </button>
+                          <button
+                            onClick={executeUpload}
+                            disabled={uploading}
+                            style={{
+                              padding: '8px 16px',
+                              background: uploading ? '#9CA3AF' : '#2563EB',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: uploading ? 'not-allowed' : 'pointer',
+                              fontWeight: '600',
+                              fontSize: '14px'
+                            }}
+                          >
+                            {uploading ? '업로드 중...' : `${uploadQueue.length}개 파일 업로드`}
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'flex-end' }}>
-              <span style={{ fontSize: '14px', color: '#6B7280' }}>
-                총 {filteredFiles.length}개 파일
-              </span>
-              <div style={{ position: 'relative', display: 'inline-block', width: '200px' }}>
-                <input
-                  type="text"
-                  placeholder="파일 검색..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value)
-                    setCurrentPage(1) // 검색 시 첫 페이지로 이동
-                  }}
-                  style={{
-                    padding: '8px 32px 8px 12px',
-                    border: '1px solid #D1D5DB',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    width: '100%'
-                  }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery('')
-                      setCurrentPage(1)
-                    }}
-                    style={{
-                      position: 'absolute',
-                      right: '8px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                      color: '#6B7280',
-                      padding: '2px',
-                      borderRadius: '2px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    title="검색어 지우기"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="file-list-section">
-              {filteredFiles.length > 0 && (
-                <div className="file-list-header">
-                  <div>이름</div>
-                  <div>파일 종류</div>
-                  <div>파일 크기</div>
-                  <div>상태</div>
-                  <div>업로드 날짜</div>
-                  <div>작업</div>
-                </div>
-              )}
-              
-              {currentFiles.map(f => (
-                <div key={f.id} className="file-list-item">
-                  <div>
-                    <button 
-                      onClick={() => {
-                        setPreviewUrl(f.url)
-                        setPreviewFileName(f.name)
-                      }} 
-                      className="file-name-button"
-                    >
-                      <span className="file-emoji">{typeEmoji[f.extension] || '📎'}</span>
-                      {f.name}
-                    </button>
-                  </div>
-                  <div className="upload-date">{getFileTypeLabel(f.extension)}</div>
-                  <div className="upload-date">{fileService.formatFileSize?.(f.size) || '-'}</div>
-                  <div>
-                    <div style={{
-                      marginTop: 4,
-                      display: 'inline-block',
-                      padding: '2px 6px',
-                      borderRadius: 6,
-                      fontSize: 11,
-                      background: f.status === 'succeeded' ? '#ECFDF5'
-                               : f.status === 'failed' ? '#FEF2F2'
-                               : '#EFF6FF',
-                      color: f.status === 'succeeded' ? '#065F46'
-                           : f.status === 'failed' ? '#991B1B'
-                           : '#1E40AF'
-                    }}>
-                      {f.status || '-'}
+                          
+                      <div className="upload-queue-list">
+                        {uploadQueue.map(item => (
+                          <div key={item.id} className="upload-queue-item">
+                            <button
+                              onClick={() => removeFromQueue(item.id)}
+                              style={{
+                                padding: '6px 8px',
+                                background: '#FEE2E2',
+                                border: '1px solid #FECACA',
+                                cursor: 'pointer',
+                                color: '#DC2626',
+                                fontSize: '12px',
+                                borderRadius: '4px',
+                                fontWeight: '600',
+                                minWidth: '50px'
+                              }}
+                              title="대기열에서 제거"
+                            >
+                              ✕ 삭제
+                            </button>
+                            <span className="file-emoji" style={{ fontSize: '16px', marginLeft: '8px' }}>
+                              {typeEmoji[item.extension] || '📎'}
+                            </span>
+                            <div style={{ fontWeight: '600', fontSize: '14px', color: '#111827', flex: 1, marginLeft: '8px' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: '500', minWidth: '80px', textAlign: 'right' }}>
+                              {fileService.formatFileSize(item.size)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="upload-date">{formatDate(f.createdAt)}</div>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                    <button
-                      onClick={() => fileService.downloadFile(f)}
-                      style={{
-                        padding: '4px 8px',
-                        background: 'transparent',
-                        border: '1px solid #D1D5DB',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
+                  )}
+                </div>
+                
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: '14px', color: '#6B7280' }}>
+                    총 {filteredFiles.length}개 파일
+                  </span>
+                  <div style={{ position: 'relative', display: 'inline-block', width: '200px' }}>
+                    <input
+                      type="text"
+                      placeholder="파일 검색..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value)
+                        setCurrentPage(1) // 검색 시 첫 페이지로 이동
                       }}
-                      title="파일 다운로드"
-                    >
-                      <MdOutlineFileDownload />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteFile(f.id, f.name)}
                       style={{
-                        padding: '4px 8px',
-                        background: 'transparent',
+                        padding: '8px 32px 8px 12px',
                         border: '1px solid #D1D5DB',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        width: '100%'
                       }}
-                      title="파일 삭제"
-                    >
-                      <FaRegTrashCan />
-                    </button>
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => {
+                          setSearchQuery('')
+                          setCurrentPage(1)
+                        }}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          color: '#6B7280',
+                          padding: '2px',
+                          borderRadius: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        title="검색어 지우기"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
+                  
+                <div className="file-list-section">
+                  {filteredFiles.length > 0 && (
+                    <div className="file-list-header">
+                      <div>이름</div>
+                      <div>파일 종류</div>
+                      <div>파일 크기</div>
+                      <div>상태</div>
+                      <div>업로드 날짜</div>
+                      <div>작업</div>
+                    </div>
+                  )}
+                  
+                  {currentFiles.map(f => (
+                    <div key={f.id} className="file-list-item">
+                      <div>
+                        <button 
+                          onClick={() => {
+                            setPreviewUrl(f.url)
+                            setPreviewFileName(f.name)
+                          }} 
+                          className="file-name-button"
+                        >
+                          <span className="file-emoji">{typeEmoji[f.extension] || '📎'}</span>
+                          {f.name}
+                        </button>
+                      </div>
+                      <div className="upload-date">{getFileTypeLabel(f.extension)}</div>
+                      <div className="upload-date">{fileService.formatFileSize?.(f.size) || '-'}</div>
+                      <div>
+                        <div style={{
+                          marginTop: 4,
+                          display: 'inline-block',
+                          padding: '2px 6px',
+                          borderRadius: 6,
+                          fontSize: 11,
+                          background: f.status === 'succeeded' ? '#ECFDF5'
+                                   : f.status === 'failed' ? '#FEF2F2'
+                                   : '#EFF6FF',
+                          color: f.status === 'succeeded' ? '#065F46'
+                               : f.status === 'failed' ? '#991B1B'
+                               : '#1E40AF'
+                        }}>
+                          {f.status || '-'}
+                        </div>
+                      </div>
+                      <div className="upload-date">{formatDate(f.createdAt)}</div>
+                      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => fileService.downloadFile(f)}
+                          style={{
+                            padding: '4px 8px',
+                            background: 'transparent',
+                            border: '1px solid #D1D5DB',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                          title="파일 다운로드"
+                        >
+                          <MdOutlineFileDownload />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFile(f.id, f.name)}
+                          style={{
+                            padding: '4px 8px',
+                            background: 'transparent',
+                            border: '1px solid #D1D5DB',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                          title="파일 삭제"
+                        >
+                          <FaRegTrashCan />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* 페이징 */}
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <button 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="pagination-button"
+                    >
+                      이전
+                    </button>
+                    
+                    <span className="pagination-info">
+                      {currentPage} / {totalPages}
+                    </span>
+                    
+                    <button 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="pagination-button"
+                    >
+                      다음
+                    </button>
+                  </div>
+                )}
+                
+                {filteredFiles.length === 0 && (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '40px',
+                    color: '#6B7280',
+                    background: '#FFFFFF',
+                    borderRadius: '12px',
+                    marginTop: '16px'
+                  }}>
+                    {searchQuery ? 
+                      `"${searchQuery}"에 대한 검색 결과가 없습니다.` : 
+                      '아직 업로드된 파일이 없습니다.'
+                    }
+                  </div>
+                )}
+              
+              </div>
             </div>
-
-            {/* 페이징 */}
-            {totalPages > 1 && (
-              <div className="pagination">
-                <button 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="pagination-button"
-                >
-                  이전
-                </button>
-                
-                <span className="pagination-info">
-                  {currentPage} / {totalPages}
-                </span>
-                
-                <button 
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="pagination-button"
-                >
-                  다음
-                </button>
-              </div>
-            )}
-            
-            {filteredFiles.length === 0 && (
-              <div style={{
-                textAlign: 'center',
-                padding: '40px',
-                color: '#6B7280',
-                background: '#FFFFFF',
-                borderRadius: '12px',
-                marginTop: '16px'
-              }}>
-                {searchQuery ? 
-                  `"${searchQuery}"에 대한 검색 결과가 없습니다.` : 
-                  '아직 업로드된 파일이 없습니다.'
-                }
-              </div>
-            )}
-          
           </div>
+              
+          {previewUrl && (
+            <PreviewPanel 
+              url={previewUrl} 
+              fileName={previewFileName}
+              onClose={() => {
+                setPreviewUrl(null)
+                setPreviewFileName('')
+              }} 
+            />
+          )}
+          <IntegrationModal open={openIntegrations} onClose={() => setOpenIntegrations(false)} />
+          <LoadingModal isOpen={apiLoading} message="LOADING..." />
         </div>
       </div>
-
-      {previewUrl && (
-        <PreviewPanel 
-          url={previewUrl} 
-          fileName={previewFileName}
-          onClose={() => {
-            setPreviewUrl(null)
-            setPreviewFileName('')
-          }} 
-        />
-      )}
-      <IntegrationModal open={openIntegrations} onClose={() => setOpenIntegrations(false)} />
-      <LoadingModal isOpen={apiLoading} message="LOADING..." />
-    </div>
+    </>
   )
 }
