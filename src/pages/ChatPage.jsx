@@ -328,32 +328,42 @@ export default function ChatPage({ user, onLogout }) {
         return [...withoutTemp, ...finalMessages];
       });
 
-      // 새 대화를 conversations에 추가
-      // 첫 번째 사용자 메시지를 제목으로 사용
-      const title = generateTitleFromMessage(userInput);
-
-      const newConversation = {
-        id: `chat_${newChat.id}`,
-        chatId: newChat.id,
-        title: title,
-        preview:
-          agentResult.response.length > 24
-            ? agentResult.response.substring(0, 24) + "..."
-            : agentResult.response,
-        messages: finalMessages,
-        lastMessageTime: newChat.created_at || new Date().toISOString(),
-      };
-
-      // 새 대화이거나 임시 대화인 경우
+      // 새 대화이거나 임시 대화인 경우에만 새 대화 생성
       if (currentId === "default" || currentId.startsWith("temp_")) {
+        // 새 대화 생성 - 첫 번째 메시지를 제목으로 사용
+        const title = generateTitleFromMessage(userInput);
+        
+        const newConversation = {
+          id: `chat_${newChat.id}`,
+          chatId: newChat.id,
+          title: title,
+          preview:
+            agentResult.response.length > 24
+              ? agentResult.response.substring(0, 24) + "..."
+              : agentResult.response,
+          messages: finalMessages,
+          lastMessageTime: newChat.created_at || new Date().toISOString(),
+        };
+        
         setConversations((prev) => [newConversation, ...prev]);
         setCurrentId(newConversation.id);
       } else {
-        // 기존 대화 업데이트
+        // 기존 대화 업데이트 - 제목은 변경하지 않음
         setConversations((prev) => {
-          const updated = prev.map((c) =>
-            c.id === currentId ? newConversation : c
-          );
+          const updated = prev.map((c) => {
+            if (c.id === currentId) {
+              return {
+                ...c,
+                preview:
+                  agentResult.response.length > 24
+                    ? agentResult.response.substring(0, 24) + "..."
+                    : agentResult.response,
+                messages: finalMessages,
+                lastMessageTime: newChat.created_at || new Date().toISOString(),
+              };
+            }
+            return c;
+          });
           return updated.sort(
             (a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
           );
@@ -498,4 +508,13 @@ export default function ChatPage({ user, onLogout }) {
       />
     </div>
   );
+}
+
+// 메시지에서 제목 생성 함수
+function generateTitleFromMessage(message) {
+  if (!message) return "새 대화";
+  
+  // 첫 20자까지만 제목으로 사용
+  const title = message.trim();
+  return title.length > 20 ? title.substring(0, 20) + "..." : title;
 }

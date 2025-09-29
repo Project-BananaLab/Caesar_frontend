@@ -46,6 +46,16 @@
   font-weight: 600;
   font-size: 18px;
   color: #E5E7EB;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.channel-user-department {
+  font-weight: 400;
+  font-size: 14px;
+  color: #9CA3AF;
+  opacity: 0.8;
 }
 
 .channel-user-role {

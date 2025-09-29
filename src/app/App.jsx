@@ -80,6 +80,7 @@ function AppContent() {
             accessToken: storedAccessToken,
             loginTime: new Date().toISOString(),
             role: "user",
+            dept_name: parsedUserInfo.dept_name, // 부서명 추가
           };
 
           setUser(authData);

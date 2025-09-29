@@ -79,7 +79,7 @@ export default function MergedGoogleLoginButton({ onSuccess, onError, companyCod
         }
         const employeeData = await backendResponse.json();
         console.log("✅ 백엔드 응답 (직원 정보):", employeeData);
-
+        
         // 상위로 넘길 통합 데이터
         const finalLoginData = {
           type: "google",
@@ -91,6 +91,7 @@ export default function MergedGoogleLoginButton({ onSuccess, onError, companyCod
           picture: userInfo.picture,
           accessToken: access_token,
           employeeData, // { id, company_id, ... }
+          dept_name: employeeData.dept_name, // 부서명 추가
         };
 
         // 쿠키에 사용자 정보 저장
