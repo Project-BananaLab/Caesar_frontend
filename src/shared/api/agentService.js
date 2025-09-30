@@ -7,7 +7,7 @@ const api = axios.create({
     "Content-Type": "application/json",
     charset: "utf-8",
   },
-  withCredentials: true, // 쿠키를 포함하여 요청
+  withCredentials: true, // 쿠키를 포함하여 요청.
 });
 
 class AgentService {
