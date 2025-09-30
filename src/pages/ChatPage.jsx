@@ -312,9 +312,12 @@ export default function ChatPage({ user, onLogout }) {
 
       // 기존 대화인지 새 대화인지 확인
       const currentConversation = conversations.find((c) => c.id === currentId);
+      const hasValidConversation =
+        currentConversation && currentConversation.chatId;
+      const isFirstQuestion = !hasValidConversation && !isNewChat;
 
-      if (currentConversation && currentConversation.chatId) {
-        // 백엔드는 기존 메시지에 새 메시지를 추가하므로, 새 메시지만 보냄
+      if (hasValidConversation) {
+        // 기존 채팅에 메시지 추가
         const newMessages = [
           { role: "user", content: userInput },
           { role: "agent", content: agentResult.response },
@@ -322,15 +325,21 @@ export default function ChatPage({ user, onLogout }) {
 
         console.log("📝 기존 채팅에 메시지 추가:", currentConversation.chatId);
         updatedChat = await updateChat(currentConversation.chatId, newMessages);
-      } else if (isNewChat) {
-        console.log("📝 새로운 채팅 생성:", isNewChat);
+      } else if (isNewChat || isFirstQuestion) {
+        // 새로운 채팅 생성 (isNewChat=true이거나 첫 질문인 경우)
+        console.log(
+          "📝 새로운 채팅 생성 - isNewChat:",
+          isNewChat,
+          "isFirstQuestion:",
+          isFirstQuestion
+        );
         const finalChannelId =
           currentChannelId || (await getOrCreateUserChannel());
         updatedChat = await createChat(finalChannelId, chatMessages);
-        setIsNewChat(false); //한 번 생성 후 다시 생성하지 않도록 설정
+        setIsNewChat(false); // 한 번 생성 후 다시 생성하지 않도록 설정
       } else {
-        console.log("📝 새로운 채팅 생성:", isNewChat);
-        return;
+        console.log("❌ 예상치 못한 상황 - 채팅 생성/업데이트 실패");
+        throw new Error("채팅을 생성하거나 업데이트할 수 없습니다.");
       }
 
       // UI 메시지 형식으로 변환
@@ -343,7 +352,7 @@ export default function ChatPage({ user, onLogout }) {
       }));
 
       // 기존 대화 업데이트 또는 새 대화 생성
-      if (currentConversation && currentConversation.chatId) {
+      if (hasValidConversation) {
         // 기존 대화 업데이트: 전체 메시지로 교체
         setMessages(finalMessages);
 
@@ -367,7 +376,7 @@ export default function ChatPage({ user, onLogout }) {
           );
         });
       } else {
-        // 새 대화 생성
+        // 새 대화 생성 (첫 질문 또는 새 채팅 버튼 클릭)
         // 임시 메시지 제거하고 실제 메시지들로 교체
         setMessages((prev) => {
           const withoutTemp = prev.filter((msg) => !msg.id.startsWith("temp_"));

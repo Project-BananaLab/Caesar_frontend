@@ -7,7 +7,7 @@ import App from "./app/App.jsx";
 const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
   "691456355389-0mpga5brmbdrh5rbgrtkbeda4n043jhp.apps.googleusercontent.com";
-  // "521152274797-sofhronh2pnb802rc37bopuklctq79ec.apps.googleusercontent.com";
+// "521152274797-sofhronh2pnb802rc37bopuklctq79ec.apps.googleusercontent.com";
 
 console.log("✅ 최종 사용될 Client ID:", GOOGLE_CLIENT_ID);
 createRoot(document.getElementById("root")).render(
