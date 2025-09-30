@@ -360,10 +360,12 @@ export default function ChatPage({ user, onLogout }) {
         const updatedConversation = {
           ...currentConversation,
           messages: finalMessages,
+
           preview:
             agentResult.response.length > 24
               ? agentResult.response.substring(0, 24) + "..."
               : agentResult.response,
+
           lastMessageTime: updatedChat.created_at || new Date().toISOString(),
         };
 
@@ -371,6 +373,7 @@ export default function ChatPage({ user, onLogout }) {
           const updated = prev.map((c) =>
             c.id === currentId ? updatedConversation : c
           );
+
           return updated.sort(
             (a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
           );
@@ -540,4 +543,13 @@ export default function ChatPage({ user, onLogout }) {
       />
     </div>
   );
+}
+
+// 메시지에서 제목 생성 함수
+function generateTitleFromMessage(message) {
+  if (!message) return "새 대화";
+  
+  // 첫 20자까지만 제목으로 사용
+  const title = message.trim();
+  return title.length > 20 ? title.substring(0, 20) + "..." : title;
 }

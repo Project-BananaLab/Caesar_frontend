@@ -88,6 +88,7 @@ export default function Login({ onLogin }) {
         role: (data.role || "user").toLowerCase(),
         accessToken: data.accessToken,
         isAuthenticated: true,
+        dept_name: data.dept_name, // 부서명 추가
       });
     } catch (err) {
       setError(err.message || "로그인에 실패했습니다.");
@@ -107,6 +108,7 @@ export default function Login({ onLogin }) {
         googleId: finalLoginData.googleId,
         isAuthenticated: true,
         role: "user",
+        dept_name: finalLoginData.dept_name, // 부서명 추가
         employeeId: finalLoginData.employeeData?.id,
       });
     } catch (e) {
