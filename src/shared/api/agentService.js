@@ -5,7 +5,9 @@ const api = axios.create({
   baseURL: "/agent", // Vite 프록시를 통해 FastAPI로 전달
   headers: {
     "Content-Type": "application/json",
+    charset: "utf-8",
   },
+  withCredentials: true, // 쿠키를 포함하여 요청
 });
 
 class AgentService {
@@ -23,10 +25,11 @@ class AgentService {
     this.isProcessing = true;
 
     try {
-      // FastAPI 서버에 요청 보내기
+      // FastAPI 서버에 요청 보내기 (쿠키는 자동으로 전달됨)
       const body = { user_id: userId, query: message };
       console.log("🚀 FastAPI 요청 보내는 중:", body);
       console.log("🌐 요청 URL:", `${api.defaults.baseURL}/query`);
+      console.log("🍪 쿠키 전달 설정:", api.defaults.withCredentials);
 
       const response = await api.post("/query", body);
       console.log("📥 FastAPI 원본 응답:", response);

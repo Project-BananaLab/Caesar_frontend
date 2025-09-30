@@ -2,7 +2,7 @@ import axios from "axios";
 import { getUserPayload } from "../utils/auth.js";
 import { createChannel, getChannels } from "./channel.js";
 
-const API_URL = "http://127.0.0.1:8000/chats"; // FastAPI Chat 엔드포인트
+const API_URL = "/chats"; // FastAPI Chat 엔드포인트
 
 // 채널별 채팅 목록 조회
 export const getChatsByChannel = async (channelId) => {
@@ -70,6 +70,19 @@ export const createChat = async (channelId, messages) => {
   }
 };
 
+// 기존 채팅에 새 메시지 추가
+export const updateChat = async (chatId, messages) => {
+  try {
+    const response = await axios.put(`${API_URL}/${chatId}`, {
+      messages: messages, // 새로 추가할 메시지들 (ChatUpdate 스키마에 맞춤)
+    });
+    return response.data;
+  } catch (error) {
+    console.error("❌ 채팅 업데이트 실패:", error);
+    throw error;
+  }
+};
+
 // 채팅 삭제
 export const deleteChat = async (chatId) => {
   try {
@@ -89,16 +102,10 @@ export const sendMessage = async (
   chatId = null
 ) => {
   try {
-    // 기존 채팅이 있다면 해당 채팅에 메시지 추가, 없다면 새로운 채팅 생성
     if (chatId) {
-      // 기존 채팅에 메시지 추가하는 로직 (별도 엔드포인트가 필요할 수 있음)
-      // 현재는 새로운 채팅으로 생성하는 방식 사용
-      const existingChat = await getChat(chatId);
-      const updatedMessages = [...existingChat.messages, { role, content }];
-
-      // 기존 채팅 삭제 후 새로운 채팅으로 재생성 (임시 방법)
-      await deleteChat(chatId);
-      return await createChat(channelId, updatedMessages);
+      // 기존 채팅에 새 메시지 추가
+      const newMessages = [{ role, content }];
+      return await updateChat(chatId, newMessages);
     } else {
       // 새로운 채팅 생성
       const messages = [{ role, content }];
@@ -137,18 +144,15 @@ export const requestAIResponse = async (
     console.error("❌ AI 응답 요청 실패:", error);
 
     // AI 응답 실패 시 사용자 메시지만 저장
-    const userOnlyMessages = chatId
-      ? [
-          ...(await getChat(chatId)).messages,
-          { role: "user", content: userMessage },
-        ]
-      : [{ role: "user", content: userMessage }];
-
     if (chatId) {
-      await deleteChat(chatId);
+      // 기존 채팅에 사용자 메시지만 추가
+      const newMessages = [{ role: "user", content: userMessage }];
+      return await updateChat(chatId, newMessages);
+    } else {
+      // 새로운 채팅 생성
+      const userOnlyMessages = [{ role: "user", content: userMessage }];
+      return await createChat(channelId, userOnlyMessages);
     }
-
-    return await createChat(channelId, userOnlyMessages);
   }
 };
 
@@ -176,14 +180,14 @@ export const searchChats = async (channelId, searchQuery) => {
 };
 
 // 채팅 업데이트 (messages 배열 전체 업데이트)
-export const updateChat = async (chatId, messages) => {
-  try {
-    const response = await axios.put(`${API_URL}/${chatId}`, {
-      messages: messages,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("❌ 채팅 업데이트 실패:", error);
-    throw error;
-  }
-};
+// export const updateChat = async (chatId, messages) => {
+//   try {
+//     const response = await axios.put(`${API_URL}/${chatId}`, {
+//       messages: messages,
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error("❌ 채팅 업데이트 실패:", error);
+//     throw error;
+//   }
+// };

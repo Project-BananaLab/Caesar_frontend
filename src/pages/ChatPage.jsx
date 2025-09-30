@@ -7,16 +7,16 @@ import PreviewPanel from "../components/PreviewPanel";
 import SettingsModal from "../components/SettingsModal";
 import IntegrationModal from "../components/admin/IntegrationModal";
 import agentService from "../shared/api/agentService";
-import { getChannels, createChannel } from "../shared/api/channel";
+import { getChannels } from "../shared/api/channel";
 import {
   getChatsByChannel,
   createChat,
+  updateChat,
   deleteChat,
   getOrCreateUserChannel,
 } from "../shared/api/chat";
 import "../assets/styles/ChatPage.css";
-
-import { MAX_CONVERSATIONS } from "../entities/conversation/constants";
+import ReactMarkdown from "react-markdown";
 
 export default function ChatPage({ user, onLogout }) {
   const [input, setInput] = useState("");
@@ -32,6 +32,7 @@ export default function ChatPage({ user, onLogout }) {
   const [searchMatches, setSearchMatches] = useState([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
   const [employeeId, setEmployeeId] = useState(null);
+  const [isNewChat, setIsNewChat] = useState(false);
 
   // 키보드 단축키 처리
   useEffect(() => {
@@ -92,8 +93,15 @@ export default function ChatPage({ user, onLogout }) {
       console.log("✅ 채팅 목록 로드:", chatsData);
 
       // 3. 백엔드 채팅 데이터를 프론트엔드 대화 형식으로 변환
+      // chatsData.chats가 없거나 빈 배열인 경우 처리
+      if (!chatsData.chats || chatsData.chats.length === 0) {
+        console.log("📝 채팅 데이터가 없음");
+        return;
+      }
+
       const backendConversations = chatsData.chats.map((chat) => {
-        const messages = chat.messages.map((msg, index) => ({
+        // chat.messages가 없는 경우 빈 배열로 처리
+        const messages = (chat.messages || []).map((msg, index) => ({
           id: `${chat.id}_${msg.role}_${index}`,
           text: msg.content,
           role: msg.role === "agent" ? "assistant" : msg.role,
@@ -181,18 +189,11 @@ export default function ChatPage({ user, onLogout }) {
 
   // 새 대화 시작 (백엔드에는 첫 메시지 전송 시 생성)
   function startNewChat() {
-    // 30개 제한 체크
-    if (conversations.length >= MAX_CONVERSATIONS) {
-      alert(
-        `최대 ${MAX_CONVERSATIONS}개의 대화만 생성할 수 있습니다.\n\n프리미엄 구독을 하시면 더 많은 대화를 생성할 수 있습니다! 🎆`
-      );
-      return;
-    }
-
     // 임시 대화 ID 생성 (실제 백엔드 채팅은 첫 메시지 전송 시 생성)
     const id = `temp_${Date.now()}`;
     setCurrentId(id);
     setMessages([]);
+    setIsNewChat(true);
     agentService.clearConversationHistory(user?.username || "default");
   }
 
@@ -307,67 +308,92 @@ export default function ChatPage({ user, onLogout }) {
         { role: "agent", content: agentResult.response },
       ];
 
-      // 현재 employeeId 기반으로 채널 가져오기
-      const finalChannelId =
-        currentChannelId || (await getOrCreateUserChannel());
-      const newChat = await createChat(finalChannelId, chatMessages);
-      console.log("✅ 백엔드에 채팅 저장 완료:", newChat);
+      let updatedChat;
+
+      // 기존 대화인지 새 대화인지 확인
+      const currentConversation = conversations.find((c) => c.id === currentId);
+
+      if (currentConversation && currentConversation.chatId) {
+        // 백엔드는 기존 메시지에 새 메시지를 추가하므로, 새 메시지만 보냄
+        const newMessages = [
+          { role: "user", content: userInput },
+          { role: "agent", content: agentResult.response },
+        ];
+
+        console.log("📝 기존 채팅에 메시지 추가:", currentConversation.chatId);
+        updatedChat = await updateChat(currentConversation.chatId, newMessages);
+      } else if (isNewChat) {
+        console.log("📝 새로운 채팅 생성:", isNewChat);
+        const finalChannelId =
+          currentChannelId || (await getOrCreateUserChannel());
+        updatedChat = await createChat(finalChannelId, chatMessages);
+        setIsNewChat(false); //한 번 생성 후 다시 생성하지 않도록 설정
+      } else {
+        console.log("📝 새로운 채팅 생성:", isNewChat);
+        return;
+      }
 
       // UI 메시지 형식으로 변환
-      const finalMessages = newChat.messages.map((msg, index) => ({
-        id: `${newChat.id}_${msg.role}_${index}`,
+      const finalMessages = updatedChat.messages.map((msg, index) => ({
+        id: `${updatedChat.id}_${msg.role}_${index}`,
         text: msg.content,
         role: msg.role === "agent" ? "assistant" : msg.role,
-        chatId: newChat.id,
-        timestamp: newChat.created_at || new Date().toISOString(),
+        chatId: updatedChat.id,
+        timestamp: updatedChat.created_at || new Date().toISOString(),
       }));
 
-      // 임시 메시지 제거하고 실제 메시지들로 교체
-      setMessages((prev) => {
-        const withoutTemp = prev.filter((msg) => !msg.id.startsWith("temp_"));
-        return [...withoutTemp, ...finalMessages];
-      });
+      // 기존 대화 업데이트 또는 새 대화 생성
+      if (currentConversation && currentConversation.chatId) {
+        // 기존 대화 업데이트: 전체 메시지로 교체
+        setMessages(finalMessages);
 
-      // 새 대화이거나 임시 대화인 경우에만 새 대화 생성
-      if (currentId === "default" || currentId.startsWith("temp_")) {
-        // 새 대화 생성 - 첫 번째 메시지를 제목으로 사용
+        // conversations 목록에서 해당 대화 업데이트
+        const updatedConversation = {
+          ...currentConversation,
+          messages: finalMessages,
+
+          preview:
+            agentResult.response.length > 24
+              ? agentResult.response.substring(0, 24) + "..."
+              : agentResult.response,
+
+          lastMessageTime: updatedChat.created_at || new Date().toISOString(),
+        };
+
+        setConversations((prev) => {
+          const updated = prev.map((c) =>
+            c.id === currentId ? updatedConversation : c
+          );
+
+          return updated.sort(
+            (a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
+          );
+        });
+      } else {
+        // 새 대화 생성
+        // 임시 메시지 제거하고 실제 메시지들로 교체
+        setMessages((prev) => {
+          const withoutTemp = prev.filter((msg) => !msg.id.startsWith("temp_"));
+          return [...withoutTemp, ...finalMessages];
+        });
+
+        // 첫 번째 사용자 메시지를 제목으로 사용
         const title = generateTitleFromMessage(userInput);
-        
+
         const newConversation = {
-          id: `chat_${newChat.id}`,
-          chatId: newChat.id,
+          id: `chat_${updatedChat.id}`,
+          chatId: updatedChat.id,
           title: title,
           preview:
             agentResult.response.length > 24
               ? agentResult.response.substring(0, 24) + "..."
               : agentResult.response,
           messages: finalMessages,
-          lastMessageTime: newChat.created_at || new Date().toISOString(),
+          lastMessageTime: updatedChat.created_at || new Date().toISOString(),
         };
-        
+
         setConversations((prev) => [newConversation, ...prev]);
         setCurrentId(newConversation.id);
-      } else {
-        // 기존 대화 업데이트 - 제목은 변경하지 않음
-        setConversations((prev) => {
-          const updated = prev.map((c) => {
-            if (c.id === currentId) {
-              return {
-                ...c,
-                preview:
-                  agentResult.response.length > 24
-                    ? agentResult.response.substring(0, 24) + "..."
-                    : agentResult.response,
-                messages: finalMessages,
-                lastMessageTime: newChat.created_at || new Date().toISOString(),
-              };
-            }
-            return c;
-          });
-          return updated.sort(
-            (a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
-          );
-        });
       }
     } catch (error) {
       console.error("❌ 메시지 전송 실패:", error);
