@@ -6,6 +6,8 @@ import { HiOutlinePencil } from "react-icons/hi2";
 import { isAdmin } from "../../entities/user/constants";
 import "../../assets/styles/ChannelSidebar.css";
 import { VscSignOut } from "react-icons/vsc";
+import FileUploadPanel from "./FileUploadPanel";
+import PersonalFileList from "./PersonalFileList";
 
 export default function ChannelSidebar({
   conversations = [],
@@ -26,6 +28,9 @@ export default function ChannelSidebar({
   const [lastFirstConversationId, setLastFirstConversationId] = useState(null);
   const [openTrashMenu, setOpenTrashMenu] = useState(false);
   const [openTrashModal, setOpenTrashModal] = useState(false);
+  const [currentView, setCurrentView] = useState("chats"); // "chats" | "files"
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [fileRefreshTrigger, setFileRefreshTrigger] = useState(0);
   const trashMenuRef = useRef(null);
 
   const CONVERSATIONS_PER_PAGE = 10;
@@ -171,6 +176,30 @@ export default function ChannelSidebar({
     setOpenTrashMenu(false);
   };
 
+  // 파일 관련 핸들러
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+    setShowFileUpload(false);
+    if (view === "chats") {
+      // 대화 목록으로 돌아갈 때 검색 초기화
+      setSearchQuery("");
+      if (onSearchInChat) {
+        onSearchInChat("");
+      }
+    }
+  };
+
+  const handleFileUploadSuccess = (result) => {
+    console.log("파일 업로드 성공:", result);
+    setFileRefreshTrigger(prev => prev + 1);
+    setShowFileUpload(false);
+  };
+
+  const handleFileDeleted = (fileId) => {
+    console.log("파일 삭제 완료:", fileId);
+    setFileRefreshTrigger(prev => prev + 1);
+  };
+
   return (
     <div className="channel-sidebar">
       <div className="channel-header">
@@ -203,183 +232,235 @@ export default function ChannelSidebar({
         </div>
       </div>
 
-      <div className="channel-search-container">
-        <div className="channel-search-input-wrapper">
-          <input
-            type="text"
-            placeholder="대화 검색..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="channel-search-input"
-          />
-          {searchQuery && (
-            <button
-              onClick={handleClearSearch}
-              className="channel-search-clear-button"
-              title="검색어 지우기"
-            >
-              ✕
-            </button>
-          )}
-        </div>
+      {/* 뷰 전환 탭 */}
+      <div className="channel-view-tabs">
+        <button
+          className={`channel-view-tab ${currentView === "chats" ? "active" : ""}`}
+          onClick={() => handleViewChange("chats")}
+        >
+          💬 대화
+        </button>
+        <button
+          className={`channel-view-tab ${currentView === "files" ? "active" : ""}`}
+          onClick={() => handleViewChange("files")}
+        >
+          📁 내 파일
+        </button>
       </div>
 
-      <div className="channel-conversations">
-        <div className="channel-conversations-header">
-          <button
-            onClick={() => {
-              // 새 대화 생성 시 검색 초기화
-              if (searchQuery) {
-                setSearchQuery("");
-                if (onSearchInChat) {
-                  onSearchInChat("");
-                }
-              }
-              onNewChat();
-            }}
-            className="channel-new-button"
-          >
-            + 새 대화
-          </button>
-          <span className="channel-conversations-count">
-            {filteredConversations.length}개
-          </span>
+      {/* 검색 영역 (대화 탭에서만 표시) */}
+      {currentView === "chats" && (
+        <div className="channel-search-container">
+          <div className="channel-search-input-wrapper">
+            <input
+              type="text"
+              placeholder="대화 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="channel-search-input"
+            />
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="channel-search-clear-button"
+                title="검색어 지우기"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
+      )}
 
-        <div className="channel-conversations-list">
-          {paginatedConversations.map((conv) => (
-            <div
-              key={conv.id}
-              className={`channel-conversation-item ${
-                conv.id === currentId ? "active" : ""
-              }`}
-              onClick={() => {
-                onSelect(conv.id);
-                // 내용 검색이었다면 채팅에서도 검색 (검색어가 유효할 때만)
-                if (
-                  conv._searchMatch === "content" &&
-                  searchQuery &&
-                  searchQuery.trim()
-                ) {
-                  handleSearchInChat(searchQuery);
-                }
-              }}
-            >
-              <div className="channel-conversation-content">
-                <div className="channel-conversation-title">
-                  {highlightSearchTerm(conv.title, searchQuery)}
-                  {conv._searchMatch === "content" && (
-                    <span className="channel-content-match-badge">내용</span>
-                  )}
-                </div>
-                {conv.preview && (
-                  <div className="channel-conversation-preview">
-                    {highlightSearchTerm(conv.preview, searchQuery)}
-                  </div>
-                )}
-              </div>
-              <div className="channel-conversation-actions">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newTitle = prompt(
-                      "새 제목을 입력하세요:",
-                      conv.title
-                    );
-                    if (newTitle && newTitle.trim()) {
-                      onRename(conv.id, newTitle.trim());
+      <div className="channel-conversations">
+        {/* 대화 목록 뷰 */}
+        {currentView === "chats" && (
+          <>
+            <div className="channel-conversations-header">
+              <button
+                onClick={() => {
+                  // 새 대화 생성 시 검색 초기화
+                  if (searchQuery) {
+                    setSearchQuery("");
+                    if (onSearchInChat) {
+                      onSearchInChat("");
+                    }
+                  }
+                  onNewChat();
+                }}
+                className="channel-new-button"
+              >
+                + 새 대화
+              </button>
+              <span className="channel-conversations-count">
+                {filteredConversations.length}개
+              </span>
+            </div>
+
+            <div className="channel-conversations-list">
+              {paginatedConversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  className={`channel-conversation-item ${
+                    conv.id === currentId ? "active" : ""
+                  }`}
+                  onClick={() => {
+                    onSelect(conv.id);
+                    // 내용 검색이었다면 채팅에서도 검색 (검색어가 유효할 때만)
+                    if (
+                      conv._searchMatch === "content" &&
+                      searchQuery &&
+                      searchQuery.trim()
+                    ) {
+                      handleSearchInChat(searchQuery);
                     }
                   }}
-                  className="channel-conversation-action-button"
-                  title="이름 변경"
                 >
-                  <HiOutlinePencil size={14} />
-                </button>
+                  <div className="channel-conversation-content">
+                    <div className="channel-conversation-title">
+                      {highlightSearchTerm(conv.title, searchQuery)}
+                      {conv._searchMatch === "content" && (
+                        <span className="channel-content-match-badge">내용</span>
+                      )}
+                    </div>
+                    {conv.preview && (
+                      <div className="channel-conversation-preview">
+                        {highlightSearchTerm(conv.preview, searchQuery)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="channel-conversation-actions">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const newTitle = prompt(
+                          "새 제목을 입력하세요:",
+                          conv.title
+                        );
+                        if (newTitle && newTitle.trim()) {
+                          onRename(conv.id, newTitle.trim());
+                        }
+                      }}
+                      className="channel-conversation-action-button"
+                      title="이름 변경"
+                    >
+                      <HiOutlinePencil size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(conv.id);
+                      }}
+                      className="channel-conversation-action-button"
+                      title="삭제"
+                    >
+                      <FaRegTrashAlt size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 페이징 */}
+            {totalPages > 1 && (
+              <div className="channel-pagination">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(conv.id);
-                  }}
-                  className="channel-conversation-action-button"
-                  title="삭제"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="channel-pagination-button"
                 >
-                  <FaRegTrashAlt size={14} />
+                  이전
+                </button>
+                <span className="channel-pagination-info">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="channel-pagination-button"
+                >
+                  다음
                 </button>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </>
+        )}
 
-        {/* 페이징 */}
-        {totalPages > 1 && (
-          <div className="channel-pagination">
+        {/* 파일 관리 뷰 */}
+        {currentView === "files" && (
+          <>
+            <div className="channel-conversations-header">
+              <button
+                onClick={() => setShowFileUpload(!showFileUpload)}
+                className="channel-new-button"
+              >
+                {showFileUpload ? "목록 보기" : "+ 파일 업로드"}
+              </button>
+            </div>
+
+            {showFileUpload ? (
+              <div className="file-upload-container">
+                <FileUploadPanel
+                  onUploadSuccess={handleFileUploadSuccess}
+                  onClose={() => setShowFileUpload(false)}
+                />
+              </div>
+            ) : (
+              <PersonalFileList
+                refreshTrigger={fileRefreshTrigger}
+                onFileDeleted={handleFileDeleted}
+              />
+            )}
+          </>
+        )}
+      </div>
+
+      {/* 구분선 */}
+      <div className="channel-divider"></div>
+
+      {/* 하단 액션 섹션 */}
+      <div className="channel-bottom-actions">
+        {/* 설정 섹션 */}
+        {location.pathname !== "/admin" && (
+          <div className="channel-settings-section">
             <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="channel-pagination-button"
+              onClick={onOpenSettings}
+              className="channel-settings-button"
+              title="설정"
             >
-              이전
-            </button>
-            <span className="channel-pagination-info">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="channel-pagination-button"
-            >
-              다음
+              <BsGear size={18} />
             </button>
           </div>
         )}
 
-        {/* 구분선 */}
-        <div className="channel-divider"></div>
+        {/* 휴지통 섹션 (API 연결 준비) */}
+        <div className="channel-trash-section">
+          <div className="channel-trash-menu-container" ref={trashMenuRef}>
+            <button
+              onClick={() => setOpenTrashMenu(!openTrashMenu)}
+              className="channel-trash-button"
+            >
+              휴지통
+            </button>
 
-        {/* 하단 액션 섹션 */}
-        <div className="channel-bottom-actions">
-          {/* 설정 섹션 */}
-          {location.pathname !== "/admin" && (
-            <div className="channel-settings-section">
-              <button
-                onClick={onOpenSettings}
-                className="channel-settings-button"
-                title="설정"
-              >
-                <BsGear size={18} />
-              </button>
-            </div>
-          )}
-
-          {/* 휴지통 섹션 (API 연결 준비) */}
-          <div className="channel-trash-section">
-            <div className="channel-trash-menu-container" ref={trashMenuRef}>
-              <button
-                onClick={() => setOpenTrashMenu(!openTrashMenu)}
-                className="channel-trash-button"
-              >
-                휴지통
-              </button>
-
-              {openTrashMenu && (
-                <div className="channel-trash-menu">
-                  <button
-                    onClick={handleTrashManage}
-                    className="channel-trash-menu-item"
-                  >
-                    관리
-                  </button>
-                  <button
-                    onClick={handleTrashEmpty}
-                    className="channel-trash-menu-item"
-                  >
-                    비우기
-                  </button>
-                </div>
-              )}
-            </div>
+            {openTrashMenu && (
+              <div className="channel-trash-menu">
+                <button
+                  onClick={handleTrashManage}
+                  className="channel-trash-menu-item"
+                >
+                  관리
+                </button>
+                <button
+                  onClick={handleTrashEmpty}
+                  className="channel-trash-menu-item"
+                >
+                  비우기
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
