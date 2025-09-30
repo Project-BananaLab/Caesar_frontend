@@ -8,8 +8,8 @@ export default defineConfig({
     port: 3000,
     host: "localhost", // localhost로 통일하여 쿠키 충돌 방지
     headers: {
-      'Cross-Origin-Opener-Policy': 'unsafe-none',
-      'Cross-Origin-Embedder-Policy': 'unsafe-none'
+      "Cross-Origin-Opener-Policy": "unsafe-none",
+      "Cross-Origin-Embedder-Policy": "unsafe-none",
     },
     proxy: {
       "/agent": {
@@ -32,6 +32,8 @@ export default defineConfig({
           });
         },
       },
+      "/chats": "http://localhost:8000",
+      "/channels": "http://localhost:8000",
     },
   },
 });

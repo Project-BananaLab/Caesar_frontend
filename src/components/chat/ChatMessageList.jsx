@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   getChatsByChannel,
   sendMessage,
@@ -166,6 +167,164 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
   // URL을 제거한 텍스트
   const textWithoutUrls = message.text?.replace(urlRegex, "").trim();
 
+  // ReactMarkdown 커스텀 컴포넌트
+  const markdownComponents = {
+    // 코드 블록 스타일링
+    code: ({ node, inline, className, children, ...props }) => {
+      const match = /language-(\w+)/.exec(className || "");
+      return !inline ? (
+        <pre
+          style={{
+            backgroundColor: "#1f2937",
+            color: "#f9fafb",
+            padding: "12px",
+            borderRadius: "6px",
+            overflow: "auto",
+            fontSize: "14px",
+            fontFamily: "Monaco, Consolas, 'Courier New', monospace",
+            margin: "8px 0",
+          }}
+        >
+          <code className={className} {...props}>
+            {children}
+          </code>
+        </pre>
+      ) : (
+        <code
+          style={{
+            backgroundColor: "#f3f4f6",
+            color: "#1f2937",
+            padding: "2px 4px",
+            borderRadius: "3px",
+            fontSize: "13px",
+            fontFamily: "Monaco, Consolas, 'Courier New', monospace",
+          }}
+          {...props}
+        >
+          {children}
+        </code>
+      );
+    },
+    // 인용구 스타일링
+    blockquote: ({ children }) => (
+      <blockquote
+        style={{
+          borderLeft: "4px solid #3b82f6",
+          paddingLeft: "12px",
+          margin: "12px 0",
+          fontStyle: "italic",
+          color: "#6b7280",
+          backgroundColor: "#f8fafc",
+          padding: "8px 12px",
+          borderRadius: "4px",
+        }}
+      >
+        {children}
+      </blockquote>
+    ),
+    // 링크 스타일링
+    a: ({ href, children }) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          color: "#3b82f6",
+          textDecoration: "underline",
+        }}
+      >
+        {children}
+      </a>
+    ),
+    // 목록 스타일링
+    ul: ({ children }) => (
+      <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>{children}</ul>
+    ),
+    ol: ({ children }) => (
+      <ol style={{ paddingLeft: "20px", margin: "8px 0" }}>{children}</ol>
+    ),
+    // 헤딩 스타일링
+    h1: ({ children }) => (
+      <h1
+        style={{
+          fontSize: "20px",
+          fontWeight: "bold",
+          margin: "16px 0 8px 0",
+          color: "#1f2937",
+        }}
+      >
+        {children}
+      </h1>
+    ),
+    h2: ({ children }) => (
+      <h2
+        style={{
+          fontSize: "18px",
+          fontWeight: "bold",
+          margin: "14px 0 6px 0",
+          color: "#1f2937",
+        }}
+      >
+        {children}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3
+        style={{
+          fontSize: "16px",
+          fontWeight: "bold",
+          margin: "12px 0 4px 0",
+          color: "#1f2937",
+        }}
+      >
+        {children}
+      </h3>
+    ),
+    // 표 스타일링
+    table: ({ children }) => (
+      <table
+        style={{
+          borderCollapse: "collapse",
+          width: "100%",
+          margin: "12px 0",
+          fontSize: "14px",
+        }}
+      >
+        {children}
+      </table>
+    ),
+    th: ({ children }) => (
+      <th
+        style={{
+          border: "1px solid #d1d5db",
+          padding: "8px 12px",
+          backgroundColor: "#f9fafb",
+          fontWeight: "bold",
+          textAlign: "left",
+        }}
+      >
+        {children}
+      </th>
+    ),
+    td: ({ children }) => (
+      <td
+        style={{
+          border: "1px solid #d1d5db",
+          padding: "8px 12px",
+        }}
+      >
+        {children}
+      </td>
+    ),
+    // 강조 스타일링
+    strong: ({ children }) => (
+      <strong style={{ fontWeight: "bold", color: "#1f2937" }}>
+        {children}
+      </strong>
+    ),
+    em: ({ children }) => <em style={{ fontStyle: "italic" }}>{children}</em>,
+  };
+
   return (
     <div
       ref={messageRef}
@@ -192,10 +351,32 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
           background: isUser ? "#3B82F6" : "#F3F4F6",
           color: isUser ? "#FFFFFF" : "#374151",
           wordBreak: "break-word",
-          whiteSpace: "pre-wrap",
         }}
       >
-        {highlightSearchTerm(textWithoutUrls)}
+        {/* 사용자 메시지는 기존 방식, AI 메시지는 ReactMarkdown 적용 */}
+        {isUser ? (
+          <span style={{ whiteSpace: "pre-wrap" }}>
+            {searchQuery
+              ? highlightSearchTerm(textWithoutUrls)
+              : textWithoutUrls}
+          </span>
+        ) : (
+          <div style={{ fontSize: "14px", lineHeight: "1.6" }}>
+            {searchQuery ? (
+              // 검색 중일 때는 하이라이트 적용
+              <span style={{ whiteSpace: "pre-wrap" }}>
+                {highlightSearchTerm(textWithoutUrls)}
+              </span>
+            ) : (
+              // 일반적인 경우 ReactMarkdown 적용
+              <ReactMarkdown components={markdownComponents}>
+                {textWithoutUrls}
+              </ReactMarkdown>
+            )}
+          </div>
+        )}
+
+        {/* URL 링크 액션 버튼들 (AI 메시지에만) */}
         {!isUser && urls.length > 0 && (
           <div style={{ marginTop: 8 }}>
             {urls.map((url, i) => (
