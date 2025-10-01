@@ -109,28 +109,28 @@ export default function FileUploadPanel({ onUploadSuccess, onClose }) {
   };
 
   return (
-    <div className="file-upload-panel">
-      <div className="file-upload-header">
+    <div className="personal-file-upload-panel">
+      <div className="personal-file-upload-header">
         <h3>파일 업로드</h3>
-        <button className="close-button" onClick={onClose}>
+        <button className="personal-close-button" onClick={onClose}>
           ✕
         </button>
       </div>
 
       {/* 드래그 앤 드롭 영역 */}
       <div
-        className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}
+        className={`personal-file-drop-zone ${isDragging ? 'dragging' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleSelectClick}
       >
-        <div className="drop-zone-content">
-          <div className="upload-icon">📁</div>
-          <p className="drop-text">
+        <div className="personal-drop-zone-content">
+          <div className="personal-upload-icon">📁</div>
+          <p className="personal-drop-text">
             파일을 여기에 드래그하거나 클릭하여 선택하세요
           </p>
-          <p className="drop-subtext">
+          <p className="personal-drop-subtext">
             지원 형식: PDF, DOCX, XLSX, TXT, CSV
           </p>
         </div>
@@ -148,36 +148,36 @@ export default function FileUploadPanel({ onUploadSuccess, onClose }) {
 
       {/* 업로드 진행 상황 */}
       {uploadingFiles.length > 0 && (
-        <div className="upload-progress-list">
+        <div className="personal-upload-progress-list">
           <h4>업로드 진행 상황</h4>
           {uploadingFiles.map((file) => (
-            <div key={file.id} className="upload-progress-item">
-              <div className="file-info">
-                <span className="file-name">{file.name}</span>
-                <span className="file-size">({formatFileSize(file.size)})</span>
+            <div key={file.id} className="personal-upload-progress-item">
+              <div className="personal-file-info">
+                <span className="personal-file-name">{file.name}</span>
+                <span className="personal-file-size">({formatFileSize(file.size)})</span>
               </div>
               
-              <div className="progress-section">
+              <div className="personal-progress-section">
                 {file.status === 'uploading' && (
-                  <div className="progress-bar">
+                  <div className="personal-progress-bar">
                     <div 
-                      className="progress-fill" 
+                      className="personal-progress-fill" 
                       style={{ width: `${file.progress}%` }}
                     ></div>
                   </div>
                 )}
                 
                 {file.status === 'completed' && (
-                  <span className="status-completed">✅ 완료</span>
+                  <span className="personal-status-completed">✅ 완료</span>
                 )}
                 
                 {file.status === 'error' && (
-                  <span className="status-error">❌ 실패: {file.error}</span>
+                  <span className="personal-status-error">❌ 실패: {file.error}</span>
                 )}
               </div>
 
               <button
-                className="remove-file-button"
+                className="personal-remove-file-button"
                 onClick={() => removeUploadingFile(file.id)}
                 title="제거"
               >

@@ -225,7 +225,7 @@ export default function AdminPage({ user, onLogout }) {
                   </div>
       
                   <div
-                    className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}
+                    className={`admin-file-drop-zone ${isDragging ? 'dragging' : ''}`}
                     onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
                     onDragLeave={() => setDragging(false)}
                     onDrop={onDrop}
@@ -233,14 +233,18 @@ export default function AdminPage({ user, onLogout }) {
                   >
                     {uploading ? (
                       <div>
-                        <div className="drop-icon">⏳</div>
+                        <div className="admin-drop-icon">⏳</div>
                         <div>파일 업로드 중...</div>
                       </div>
                     ) : (
                       <div>
-                        <div className="drop-icon">📁</div>
-                        <div>여기로 드래그하거나 클릭해서 파일을 선택하세요</div>
-                        <div style={{fontSize: '12px', color: '#bebebe', fontWeight: '400', paddingTop: '8px'}}>지원 파일 확장자: .pdf, .docx, .xlsx, .csv, .txt</div>
+                        <div className="admin-drop-icon">📁</div>
+                        <p className="admin-drop-text">
+                          여기로 드래그하거나 클릭해서 파일을 선택하세요
+                        </p>
+                        <p className="admin-drop-subtext">
+                          지원 파일 확장자: .pdf, .docx, .xlsx, .csv, .txt
+                        </p>
                       </div>
                     )}
                     <input 
@@ -255,7 +259,7 @@ export default function AdminPage({ user, onLogout }) {
                   
                   {/* 업로드 대기열 */}
                   {uploadQueue.length > 0 && (
-                    <div className="upload-queue-section">
+                    <div className="admin-upload-queue-section">
                       <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
@@ -299,9 +303,9 @@ export default function AdminPage({ user, onLogout }) {
                         </div>
                       </div>
                           
-                      <div className="upload-queue-list">
+                      <div className="admin-upload-queue-list">
                         {uploadQueue.map(item => (
-                          <div key={item.id} className="upload-queue-item">
+                          <div key={item.id} className="admin-upload-queue-item">
                             <button
                               onClick={() => removeFromQueue(item.id)}
                               style={{
@@ -319,7 +323,7 @@ export default function AdminPage({ user, onLogout }) {
                             >
                               ✕ 삭제
                             </button>
-                            <span className="file-emoji" style={{ fontSize: '16px', marginLeft: '8px' }}>
+                            <span className="admin-file-emoji" style={{ fontSize: '16px', marginLeft: '8px' }}>
                               {typeEmoji[item.extension] || '📎'}
                             </span>
                             <div style={{ fontWeight: '600', fontSize: '14px', color: '#111827', flex: 1, marginLeft: '8px' }}>

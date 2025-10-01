@@ -17,14 +17,19 @@ export default function PersonalFileList({ refreshTrigger, onFileDeleted }) {
   const [totalFiles, setTotalFiles] = useState(0);
   const [deletingFileId, setDeletingFileId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // 파일 목록 로드
+  const FILES_PER_PAGE = 10;
+
+  // 파일 목록 로드 (모든 파일을 가져와서 클라이언트 사이드 페이징)
   const loadFiles = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await getPersonalFiles(50, 0);
+      // 충분히 큰 수로 설정하여 모든 파일을 가져옴
+      const response = await getPersonalFiles(1000, 0);
+      
       setFiles(response.files || []);
       setTotalFiles(response.total || 0);
     } catch (err) {
@@ -39,6 +44,11 @@ export default function PersonalFileList({ refreshTrigger, onFileDeleted }) {
   useEffect(() => {
     loadFiles();
   }, [refreshTrigger]);
+
+  // 검색 쿼리가 변경되면 첫 페이지로 이동
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   // 파일 삭제 처리
   const handleDeleteFile = async (fileId, fileName) => {
@@ -88,6 +98,7 @@ export default function PersonalFileList({ refreshTrigger, onFileDeleted }) {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: false,
     });
   };
 
@@ -97,6 +108,25 @@ export default function PersonalFileList({ refreshTrigger, onFileDeleted }) {
         file.fileName.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : files;
+
+  // 페이징 계산
+  const totalPages = Math.ceil(filteredFiles.length / FILES_PER_PAGE);
+  const startIndex = (currentPage - 1) * FILES_PER_PAGE;
+  const paginatedFiles = filteredFiles.slice(startIndex, startIndex + FILES_PER_PAGE);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  // 현재 페이지에 파일이 없으면 이전 페이지로 이동
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   // 검색어 하이라이트 함수
   const highlightSearchTerm = (text, query) => {
@@ -169,9 +199,6 @@ export default function PersonalFileList({ refreshTrigger, onFileDeleted }) {
             </button>
           )}
         </div>
-        <button onClick={loadFiles} className="refresh-button" title="새로고침">
-          🔄
-        </button>
       </div>
 
       {filteredFiles.length === 0 ? (
@@ -191,7 +218,7 @@ export default function PersonalFileList({ refreshTrigger, onFileDeleted }) {
         </div>
       ) : (
         <div className="file-list">
-          {filteredFiles.map((file) => (
+          {paginatedFiles.map((file) => (
             <div key={file.id} className="file-item">
               <div className="file-icon">
                 {file.fileName.endsWith('.pdf') ? '📄' :
@@ -201,42 +228,67 @@ export default function PersonalFileList({ refreshTrigger, onFileDeleted }) {
                  '📁'}
               </div>
               
-              <div className="file-details">
-                <div className="file-name" title={file.fileName}>
-                  {highlightSearchTerm(file.fileName, searchQuery)}
-                </div>
-                <div className="file-meta">
-                  <span className="file-size">{formatFileSize(file.size)}</span>
-                  <span className="file-date">{formatDate(file.createdAt)}</span>
-                  {file.chunksCount > 0 && (
-                    <span className="chunks-count">{file.chunksCount}개 청크</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="file-status">
-                <span className={`status-badge ${getStatusClass(file.status)}`}>
-                  {getFileStatusText(file.status)}
-                </span>
-                {file.status === 'failed' && file.errorText && (
-                  <div className="error-tooltip" title={file.errorText}>
-                    ⚠️
+              <div className="file-content">
+                <div className="file-header">
+                  <div className="file-name" title={file.fileName}>
+                    {highlightSearchTerm(file.fileName, searchQuery)}
                   </div>
-                )}
-              </div>
-
-              <div className="file-actions">
-                <button
-                  onClick={() => handleDeleteFile(file.id, file.fileName)}
-                  disabled={deletingFileId === file.id}
-                  className="delete-button"
-                  title="파일 삭제"
-                >
-                  {deletingFileId === file.id ? '⏳' : '🗑️'}
-                </button>
+                  <div className="file-header-actions">
+                    <div className="file-status">
+                      <span className={`status-badge ${getStatusClass(file.status)}`}>
+                        {getFileStatusText(file.status)}
+                      </span>
+                      {file.status === 'failed' && file.errorText && (
+                        <div className="error-tooltip" title={file.errorText}>
+                          ⚠️
+                        </div>
+                      )}
+                    </div>
+                    <div className="file-actions">
+                      <button
+                        onClick={() => handleDeleteFile(file.id, file.fileName)}
+                        disabled={deletingFileId === file.id}
+                        className="delete-button"
+                        title="파일 삭제"
+                      >
+                        {deletingFileId === file.id ? '⏳' : '🗑️'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="file-footer">
+                  <div className="file-meta">
+                    <span className="file-size">{formatFileSize(file.size)}</span>
+                    <span className="file-date">{formatDate(file.createdAt)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 페이징 컨트롤 - 대화 리스트와 동일한 스타일 */}
+      {totalPages > 1 && (
+        <div className="channel-pagination">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="channel-pagination-button"
+          >
+            이전
+          </button>
+          <span className="channel-pagination-info">
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="channel-pagination-button"
+          >
+            다음
+          </button>
         </div>
       )}
 
