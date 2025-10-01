@@ -212,7 +212,8 @@ export default function ChannelSidebar({
               {user?.username || "Unknown"}
             </div>
             <div className="channel-user-role">
-              {isAdmin(user) ? "관리자" : "사용자"}
+              {user?.dept_name || (isAdmin(user) ? "관리자" : "사용자")}
+
             </div>
           </div>
         </div>
