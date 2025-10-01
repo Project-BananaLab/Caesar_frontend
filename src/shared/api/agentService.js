@@ -3,7 +3,7 @@ import { setCookie, getCookie } from "../utils/cookies.js";
 
 // FastAPI 서버 주소
 const api = axios.create({
-  baseURL: "/agent", // Vite 프록시를 통해 FastAPI로 전달
+  baseURL: "/agent", // Vite 프록시를 통해 FastAPI로 전달.
   headers: {
     "Content-Type": "application/json",
     charset: "utf-8",
