@@ -1,5 +1,5 @@
-/* FileUploadPanel.css */
-.file-upload-panel {
+/* FileUploadPanel.css - Personal File Upload Panel */
+.personal-file-upload-panel {
   background: white;
   border-radius: 8px;
   padding: 20px;
@@ -8,19 +8,21 @@
   width: 100%;
 }
 
-.file-upload-header {
+.personal-file-upload-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
-.file-upload-header h3 {
+.personal-file-upload-header h3 {
   margin: 0;
   color: #333;
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.close-button {
+.personal-close-button {
   background: none;
   border: none;
   font-size: 18px;
@@ -29,59 +31,59 @@
   padding: 4px;
 }
 
-.close-button:hover {
+.personal-close-button:hover {
   color: #333;
 }
 
-.file-drop-zone {
+.personal-file-drop-zone {
   border: 2px dashed #ddd;
   border-radius: 8px;
-  padding: 40px 20px;
+  padding: 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 20px;
 }
 
-.file-drop-zone:hover,
-.file-drop-zone.dragging {
+.personal-file-drop-zone:hover,
+.personal-file-drop-zone.dragging {
   border-color: #007bff;
   background-color: #f8f9ff;
 }
 
-.drop-zone-content {
+.personal-drop-zone-content {
   pointer-events: none;
 }
 
-.upload-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+.personal-upload-icon {
+  font-size: 30px;
+  margin-bottom: 12px;
 }
 
-.drop-text {
-  font-size: 16px;
-  color: #333;
-  margin: 0 0 8px 0;
-}
-
-.drop-subtext {
+.personal-drop-text {
   font-size: 14px;
-  color: #666;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.personal-drop-subtext {
+  font-size: 11px;
+  color: #999;
   margin: 0;
 }
 
-.upload-progress-list {
+.personal-upload-progress-list {
   border-top: 1px solid #eee;
   padding-top: 20px;
 }
 
-.upload-progress-list h4 {
+.personal-upload-progress-list h4 {
   margin: 0 0 16px 0;
   color: #333;
   font-size: 16px;
 }
 
-.upload-progress-item {
+.personal-upload-progress-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -91,12 +93,12 @@
   margin-bottom: 8px;
 }
 
-.file-info {
+.personal-file-info {
   flex: 1;
   min-width: 0;
 }
 
-.file-name {
+.personal-file-name {
   display: block;
   font-weight: 500;
   color: #333;
@@ -105,49 +107,54 @@
   text-overflow: ellipsis;
 }
 
-.file-size {
+.personal-file-size {
   font-size: 12px;
   color: #666;
 }
 
-.progress-section {
+.personal-progress-section {
   flex: 1;
   max-width: 120px;
 }
 
-.progress-bar {
+.personal-progress-bar {
   width: 100%;
   height: 6px;
-  background: #e9ecef;
+  background: #e5e7eb;
   border-radius: 3px;
   overflow: hidden;
 }
 
-.progress-fill {
+.personal-progress-fill {
   height: 100%;
   background: #007bff;
   transition: width 0.3s ease;
 }
 
-.status-completed {
-  color: #28a745;
-  font-size: 14px;
-}
-
-.status-error {
-  color: #dc3545;
+.personal-status-completed {
   font-size: 12px;
+  color: #059669;
+  font-weight: 500;
 }
 
-.remove-file-button {
+.personal-status-error {
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.personal-remove-file-button {
   background: none;
   border: none;
-  color: #666;
-  cursor: pointer;
-  padding: 4px;
   font-size: 14px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
-.remove-file-button:hover {
-  color: #dc3545;
+.personal-remove-file-button:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }

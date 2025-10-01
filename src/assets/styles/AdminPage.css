@@ -77,31 +77,43 @@
   margin-bottom: 16px;
 }
 
-.file-drop-zone {
+.admin-file-drop-zone {
   border: 2px dashed #D1D5DB;
   border-radius: 12px;
-  padding: 48px 24px;
+  padding: 36px 24px;
   text-align: center;
-  background: #FFFFFF;
+  background: #F9FAFB;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   color: #6B7280;
 }
 
-.file-drop-zone:hover {
+.admin-file-drop-zone:hover {
   border-color: #667eea;
   opacity: 0.95;
 }
 
-.file-drop-zone.dragging {
+.admin-file-drop-zone.dragging {
   border-color: #667eea;
   background: #EEF2FF;
   transform: scale(1.02);
 }
 
-.drop-icon {
-  font-size: 48px;
+.admin-drop-icon {
+  font-size: 40px;
   margin-bottom: 16px;
+}
+
+.admin-drop-text {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.admin-drop-subtext {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
 }
 
 .file-list-section {
@@ -172,7 +184,7 @@
   font-weight: 400;
 }
 
-.upload-queue-section {
+.admin-upload-queue-section {
   background: #FEF3C7;
   border: 1px solid #F59E0B;
   border-radius: 12px;
@@ -180,13 +192,13 @@
   margin-bottom: 24px;
 }
 
-.upload-queue-list {
+.admin-upload-queue-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.upload-queue-item {
+.admin-upload-queue-item {
   display: flex;
   align-items: center;
   gap: 0;
@@ -198,7 +210,7 @@
   min-height: 40px;
 }
 
-.upload-queue-item:hover {
+.admin-upload-queue-item:hover {
   background: #F9FAFB;
   border-color: #D1D5DB;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
