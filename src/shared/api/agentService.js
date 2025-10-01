@@ -1,4 +1,5 @@
 import axios from "axios";
+import { setCookie, getCookie } from "../utils/cookies.js";
 
 // FastAPI 서버 주소
 const api = axios.create({
@@ -25,6 +26,13 @@ class AgentService {
     this.isProcessing = true;
 
     try {
+      // localStorage의 구글 토큰을 쿠키로 동기화
+      const googleToken = localStorage.getItem("google_access_token");
+      if (googleToken && !getCookie("google_access_token")) {
+        setCookie("google_access_token", googleToken, 1);
+        console.log("✅ 구글 토큰을 쿠키로 동기화함");
+      }
+
       // FastAPI 서버에 요청 보내기 (쿠키는 자동으로 전달됨)
       const body = { user_id: userId, query: message };
       console.log("🚀 FastAPI 요청 보내는 중:", body);
@@ -37,12 +45,8 @@ class AgentService {
       console.log("📥 응답 헤더:", response.headers);
 
       const result = response.data;
-      console.log("📋 파싱된 결과:", result);
-      console.log("📋 result.success:", result.success);
       console.log("📋 result.output:", result.output);
       console.log("📋 result.response:", result.response);
-      console.log("📋 전체 응답 필드들:", Object.keys(result));
-      console.log("📋 전체 응답 내용:", JSON.stringify(result, null, 2));
 
       if (!result.success) {
         throw new Error(result.message || "서버에서 오류가 발생했습니다.");
@@ -217,25 +221,6 @@ class AgentService {
     } catch (error) {
       console.error("서버 상태 체크 오류:", error);
       return { status: "error", message: "서버에 연결할 수 없습니다." };
-    }
-  }
-
-  // 테스트용 디버깅 함수
-  async testConnection() {
-    try {
-      console.log("🧪 서버 연결 테스트 시작");
-      console.log("🧪 기본 URL:", api.defaults.baseURL);
-
-      const testMessage = "테스트 메시지입니다";
-      const testUserId = "test_user";
-
-      const response = await this.processMessage(testMessage, testUserId);
-      console.log("🧪 테스트 결과:", response);
-
-      return response;
-    } catch (error) {
-      console.error("🧪 테스트 실패:", error);
-      return { success: false, error: error.message };
     }
   }
 }
