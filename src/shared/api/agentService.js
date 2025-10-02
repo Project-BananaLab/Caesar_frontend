@@ -35,18 +35,15 @@ class AgentService {
 
       // FastAPI 서버에 요청 보내기 (쿠키는 자동으로 전달됨)
       const body = { user_id: userId, query: message };
-      console.log("🚀 FastAPI 요청 보내는 중:", body);
       console.log("🌐 요청 URL:", `${api.defaults.baseURL}/query`);
       console.log("🍪 쿠키 전달 설정:", api.defaults.withCredentials);
 
       const response = await api.post("/query", body);
       console.log("📥 FastAPI 원본 응답:", response);
-      console.log("📥 응답 상태:", response.status);
       console.log("📥 응답 헤더:", response.headers);
 
       const result = response.data;
       console.log("📋 result.output:", result.output);
-      console.log("📋 result.response:", result.response);
 
       if (!result.success) {
         throw new Error(result.message || "서버에서 오류가 발생했습니다.");
@@ -96,7 +93,6 @@ class AgentService {
       console.log("🔍 RAG 결과 확인 (sources):", result.sources);
       console.log("🔍 최종 선택된 RAG 결과:", ragResults);
       console.log("🔍 RAG 결과 타입:", typeof ragResults);
-      console.log("🔍 RAG 결과 길이:", ragResults?.length);
 
       console.log("✅ 최종 응답 텍스트:", responseText);
 
@@ -118,6 +114,8 @@ class AgentService {
         success: true,
         response: responseText,
         conversationId: result.conversation_id || `conv_${Date.now()}`,
+        sources: result.sources || [],
+        driveFiles: result.drive_files || [], // 구글 드라이브 파일 정보 추가
       };
     } catch (error) {
       console.error("❌ FastAPI 서버 통신 오류:", error);
