@@ -9,6 +9,7 @@ import {
   deleteChat,
   getChat,
 } from "../../shared/api/chat.js";
+import fileService from "../../shared/api/fileService.js";
 
 // 스켈레톤 로딩 컴포넌트
 function TypingIndicator() {
@@ -89,35 +90,27 @@ function TypingIndicator() {
   );
 }
 
-function LinkActions({ url, onPreview }) {
+function LinkActions({ url }) {
+  const isNotionLink = url.includes("notion.so");
+
   return (
     <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
       <button
-        onClick={() => onPreview?.(url)}
+        onClick={() => {
+          // 노션이면 그냥 열기, 아니면 새탭 열기
+          window.open(url, "_blank", "noopener,noreferrer");
+        }}
         style={{
-          padding: "4px 8px",
-          fontSize: 12,
-          background: "#F3F4F6",
-          border: "1px solid #D1D5DB",
-          borderRadius: 4,
+          padding: "6px 12px",
+          fontSize: "13px",
+          borderRadius: "6px",
           cursor: "pointer",
+          border: `1px solid ${isNotionLink ? "#3B82F6" : "#10B981"}`,
+          background: isNotionLink ? "#EFF6FF" : "#ECFDF5",
+          color: isNotionLink ? "#2563EB" : "#059669",
         }}
       >
-        미리보기
-      </button>
-      <button
-        onClick={() => window.open(url, "_blank")}
-        style={{
-          padding: "4px 8px",
-          fontSize: 12,
-          background: "#EBF8FF",
-          border: "1px solid #3B82F6",
-          borderRadius: 4,
-          cursor: "pointer",
-          color: "#3B82F6",
-        }}
-      >
-        링크 열기
+        {isNotionLink ? "🔗 노션 열기" : "🌐 링크 열기"}
       </button>
     </div>
   );
@@ -127,9 +120,20 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
   const isUser = message.role === "user";
   const messageRef = useRef(null);
 
-  // URL 패턴 매칭
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // URL 패턴 매칭 (괄호, 마침표 등 제외)
+  const urlRegex = /(https?:\/\/[^\s\)\]\.,;!?]+)/g;
   const urls = message.text?.match(urlRegex) || [];
+
+  // 노션 링크 패턴 매칭 (마크다운 링크 형식 포함)
+  const notionLinkRegex = /\[([^\]]+)\]\((https:\/\/[^)]*notion\.so[^)]*)\)/g;
+  const notionLinks = [];
+  let match;
+  while ((match = notionLinkRegex.exec(message.text || "")) !== null) {
+    notionLinks.push({
+      text: match[1], // 링크 텍스트 (예: "회의록6")
+      url: match[2], // 실제 URL
+    });
+  }
 
   // 검색어 하이라이트 함수
   const highlightSearchTerm = (text) => {
@@ -164,8 +168,10 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
     });
   };
 
-  // URL을 제거한 텍스트
-  const textWithoutUrls = message.text?.replace(urlRegex, "").trim();
+  // URL과 노션 링크를 제거한 텍스트
+  let textWithoutUrls = message.text?.replace(urlRegex, "").trim() || "";
+  // 노션 마크다운 링크도 제거
+  textWithoutUrls = textWithoutUrls.replace(notionLinkRegex, "").trim();
 
   // ReactMarkdown 커스텀 컴포넌트
   const markdownComponents = {
@@ -223,19 +229,39 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
       </blockquote>
     ),
     // 링크 스타일링
-    a: ({ href, children }) => (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          color: "#3b82f6",
-          textDecoration: "underline",
-        }}
-      >
-        {children}
-      </a>
-    ),
+    a: ({ href, children }) => {
+      // 노션 링크인지 확인
+      const isNotionLink = href && href.includes("notion.so");
+
+      if (isNotionLink) {
+        // 노션 링크는 일반 텍스트로 표시
+        return (
+          <span
+            style={{
+              color: "#374151", // 기본 텍스트 색상
+              fontWeight: "500",
+            }}
+          >
+            {children}
+          </span>
+        );
+      }
+
+      // 일반 링크는 기존 방식
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: "#3b82f6",
+            textDecoration: "underline",
+          }}
+        >
+          {children}
+        </a>
+      );
+    },
     // 목록 스타일링
     ul: ({ children }) => (
       <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>{children}</ul>
@@ -373,15 +399,107 @@ function ChatMessage({ message, onPreview, searchQuery, isCurrentMatch }) {
                 {textWithoutUrls}
               </ReactMarkdown>
             )}
+            {/* ✅ 노션 링크 표시 */}
+            {notionLinks.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                {notionLinks.map((notionLink, index) => (
+                  <div key={index} style={{ marginBottom: 8 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "8px 12px",
+                        backgroundColor: "#F8F9FA",
+                        borderRadius: "8px",
+                        border: "1px solid #E5E7EB",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "#374151",
+                          fontWeight: "500",
+                          fontSize: "14px",
+                        }}
+                      >
+                        📄 {notionLink.text}
+                      </span>
+                      <button
+                        onClick={() => {
+                          console.log("🔗 노션 링크 열기:", notionLink.url);
+                          const link = document.createElement("a");
+                          link.href = notionLink.url;
+                          link.target = "_blank";
+                          link.rel = "noopener noreferrer";
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        style={{
+                          padding: "4px 8px",
+                          fontSize: "12px",
+                          background: "#EBF8FF",
+                          border: "1px solid #3B82F6",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          color: "#3B82F6",
+                        }}
+                      >
+                        링크 열기
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ✅ internal RAG (파일) 프리뷰 버튼 */}
+            {message.previewFile && (
+              <div style={{ marginTop: 8, display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => {
+                    console.log(
+                      "🔍 미리보기 버튼 클릭 - previewFile:",
+                      message.previewFile
+                    );
+                    // S3 URL이 있으면 COOP 에러 방지를 위해 링크 생성, 없으면 기존 프리뷰 방식 사용
+                    if (message.previewFile.s3_url) {
+                      const link = document.createElement("a");
+                      link.href = message.previewFile.s3_url;
+                      link.target = "_blank";
+                      link.rel = "noopener noreferrer";
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    } else {
+                      onPreview(message.previewFile);
+                    }
+                  }}
+                  style={{
+                    padding: "6px 12px",
+                    background: "#2563EB",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  📂 미리보기
+                </button>
+              </div>
+            )}
           </div>
         )}
 
-        {/* URL 링크 액션 버튼들 (AI 메시지에만) */}
+        {/* URL 링크 액션 버튼들 (AI 메시지에만, 노션 링크 제외) */}
         {!isUser && urls.length > 0 && (
           <div style={{ marginTop: 8 }}>
-            {urls.map((url, i) => (
-              <LinkActions key={i} url={url} onPreview={onPreview} />
-            ))}
+            {urls
+              .filter((url) => !url.includes("notion.so")) // 노션 링크 제외
+              .map((url, i) => (
+                <LinkActions key={i} url={url} onPreview={onPreview} />
+              ))}
           </div>
         )}
       </div>
@@ -438,6 +556,7 @@ export default function ChatMessageList({
             role: message.role === "agent" ? "assistant" : message.role,
             chatId: chat.id,
             timestamp: chat.created_at || new Date().toISOString(),
+            previewFile: message.previewFile || null,
           });
         });
       });
@@ -596,7 +715,7 @@ export default function ChatMessageList({
 
   // 현재 검색 결과로 스크롤
   useEffect(() => {
-    if (searchMatches.length > 0 && currentMatchIndex >= 0) {
+    if (searchMatches && searchMatches.length > 0 && currentMatchIndex >= 0) {
       const currentMatch = searchMatches[currentMatchIndex];
       const messageRef = messageRefs.current[currentMatch.messageIndex];
       if (messageRef) {
@@ -686,11 +805,13 @@ export default function ChatMessageList({
 
       {/* 메시지 목록 */}
       {messages.map((message, index) => {
-        const isCurrentMatch = searchMatches.some(
-          (match) =>
-            match.messageIndex === index &&
-            searchMatches.indexOf(match) === currentMatchIndex
-        );
+        const isCurrentMatch =
+          searchMatches &&
+          searchMatches.some(
+            (match) =>
+              match.messageIndex === index &&
+              searchMatches.indexOf(match) === currentMatchIndex
+          );
 
         return (
           <div

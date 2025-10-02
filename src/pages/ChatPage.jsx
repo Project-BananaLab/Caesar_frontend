@@ -33,16 +33,17 @@ export default function ChatPage({ user, onLogout }) {
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
   const [employeeId, setEmployeeId] = useState(null);
   const [isNewChat, setIsNewChat] = useState(false);
+  const [previewFileName, setPreviewFileName] = useState("");
 
   // 키보드 단축키 처리
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (searchInChat && searchMatches.length > 0) {
+      if (searchInChat && searchMatches && searchMatches.length > 0) {
         if (e.key === "F3" || (e.ctrlKey && e.key === "g")) {
           e.preventDefault();
           // 다음 검색 결과로 이동
           setCurrentMatchIndex((prev) =>
-            prev < searchMatches.length - 1 ? prev + 1 : 0
+            prev < (searchMatches?.length || 1) - 1 ? prev + 1 : 0
           );
         } else if (
           (e.key === "F3" && e.shiftKey) ||
@@ -51,7 +52,7 @@ export default function ChatPage({ user, onLogout }) {
           e.preventDefault();
           // 이전 검색 결과로 이동
           setCurrentMatchIndex((prev) =>
-            prev > 0 ? prev - 1 : searchMatches.length - 1
+            prev > 0 ? prev - 1 : (searchMatches?.length || 1) - 1
           );
         } else if (e.key === "Escape") {
           // 검색 종료
@@ -64,7 +65,7 @@ export default function ChatPage({ user, onLogout }) {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [searchInChat, searchMatches.length]);
+  }, [searchInChat, searchMatches?.length]);
 
   // 백엔드에서 대화 로드하는 함수
   const loadConversationsFromBackend = async (targetEmployeeId) => {
@@ -107,6 +108,7 @@ export default function ChatPage({ user, onLogout }) {
           role: msg.role === "agent" ? "assistant" : msg.role,
           chatId: chat.id,
           timestamp: chat.created_at || new Date().toISOString(),
+          previewFile: msg.previewFile || null,
         }));
 
         // 첫 번째 사용자 메시지를 제목으로 사용
@@ -301,11 +303,46 @@ export default function ChatPage({ user, onLogout }) {
       console.log("🆔 에이전트에 전달할 User ID:", userId);
       const agentResult = await agentService.processMessage(userInput, userId);
       console.log("🤖 에이전트 응답 받음:", agentResult);
+      console.log("📂 Sources 배열:", agentResult.sources);
 
-      // 백엔드에 채팅 저장 (사용자 질문 + AI 응답)
+      // ✅ sources 중 파일형만 추출
+      let previewFile = null;
+      console.log("🔍 Sources 처리 시작:", agentResult.sources);
+      console.log(
+        "🔍 Sources 상세 내용:",
+        JSON.stringify(agentResult.sources, null, 2)
+      );
+
+      if (agentResult.sources && agentResult.sources.length > 0) {
+        console.log("✅ Sources 배열 존재, 길이:", agentResult.sources.length);
+
+        const fileSource = agentResult.sources.find(
+          (s) => s.source_type === "file"
+        );
+
+        console.log("🔍 파일 소스 찾기 결과:", fileSource);
+        console.log("🔍 파일 소스 download_url:", fileSource?.download_url);
+
+        if (fileSource) {
+          previewFile = {
+            url: fileSource.preview_url,
+            fileName: fileSource.filename,
+            downloadUrl: fileSource.download_url,
+            download_url: fileSource.download_url, // ChatMessageList에서 사용하는 키 추가
+            s3_url: fileSource.s3_url, // S3 URL 추가
+          };
+          console.log("✅ previewFile 생성됨:", previewFile);
+        } else {
+          console.log("❌ 파일 타입 소스를 찾을 수 없음");
+        }
+      } else {
+        console.log("❌ Sources 배열이 비어있거나 없음");
+      }
+
+      // 백엔드에 채팅 저장 (사용자 질문 + AI 응답 + optional previewFile)
       const chatMessages = [
         { role: "user", content: userInput },
-        { role: "agent", content: agentResult.response },
+        { role: "agent", content: agentResult.response, previewFile },
       ];
 
       let updatedChat;
@@ -317,13 +354,14 @@ export default function ChatPage({ user, onLogout }) {
       const isFirstQuestion = !hasValidConversation && !isNewChat;
 
       if (hasValidConversation) {
-        // 기존 채팅에 메시지 추가
+        // 기존 채팅에 메시지 추가 (previewFile 포함)
         const newMessages = [
           { role: "user", content: userInput },
-          { role: "agent", content: agentResult.response },
+          { role: "agent", content: agentResult.response, previewFile },
         ];
 
         console.log("📝 기존 채팅에 메시지 추가:", currentConversation.chatId);
+        console.log("📝 추가할 메시지 (previewFile 포함):", newMessages);
         updatedChat = await updateChat(currentConversation.chatId, newMessages);
       } else if (isNewChat || isFirstQuestion) {
         // 새로운 채팅 생성 (isNewChat=true이거나 첫 질문인 경우)
@@ -338,7 +376,7 @@ export default function ChatPage({ user, onLogout }) {
         updatedChat = await createChat(finalChannelId, chatMessages);
         setIsNewChat(false); // 한 번 생성 후 다시 생성하지 않도록 설정
       } else {
-        console.log("❌ 예상치 못한 상황 - 채팅 생성/업데이트 실패");
+        console.log("❌ 채팅 생성/업데이트 실패");
         throw new Error("채팅을 생성하거나 업데이트할 수 없습니다.");
       }
 
@@ -349,12 +387,29 @@ export default function ChatPage({ user, onLogout }) {
         role: msg.role === "agent" ? "assistant" : msg.role,
         chatId: updatedChat.id,
         timestamp: updatedChat.created_at || new Date().toISOString(),
+        previewFile: msg.previewFile || null,
       }));
 
       // 기존 대화 업데이트 또는 새 대화 생성
       if (hasValidConversation) {
-        // 기존 대화 업데이트: 전체 메시지로 교체
-        setMessages(finalMessages);
+        // 기존 대화 업데이트: 기존 메시지의 previewFile 정보 보존하면서 전체 업데이트
+        setMessages((prevMessages) => {
+          // 기존 메시지들의 previewFile 정보를 맵으로 저장
+          const existingPreviewFiles = {};
+          prevMessages.forEach((msg) => {
+            if (msg.previewFile) {
+              // 메시지 내용을 키로 사용하여 previewFile 정보 저장
+              existingPreviewFiles[msg.text] = msg.previewFile;
+            }
+          });
+
+          // 새로운 메시지들에 기존 previewFile 정보 복원
+          return finalMessages.map((msg) => ({
+            ...msg,
+            previewFile:
+              msg.previewFile || existingPreviewFiles[msg.text] || null,
+          }));
+        });
 
         // conversations 목록에서 해당 대화 업데이트
         const updatedConversation = {
@@ -464,7 +519,10 @@ export default function ChatPage({ user, onLogout }) {
         />
         <ChatMessageList
           messages={messages}
-          onPreview={(url) => setPreviewUrl(url)}
+          onPreview={(file) => {
+            setPreviewUrl(file.url);
+            setPreviewFileName(file.fileName);
+          }}
           searchQuery={searchInChat}
           searchMatches={searchMatches}
           currentMatchIndex={currentMatchIndex}
@@ -472,7 +530,7 @@ export default function ChatPage({ user, onLogout }) {
         />
 
         {/* 검색 네비게이션 컨트롤 */}
-        {searchInChat && searchMatches.length > 0 && (
+        {searchInChat && searchMatches && searchMatches.length > 0 && (
           <div className="search-navigation">
             <div className="search-info">
               <div>
@@ -489,7 +547,7 @@ export default function ChatPage({ user, onLogout }) {
               <button
                 onClick={() =>
                   setCurrentMatchIndex((prev) =>
-                    prev > 0 ? prev - 1 : searchMatches.length - 1
+                    prev > 0 ? prev - 1 : (searchMatches?.length || 1) - 1
                   )
                 }
                 className="search-nav-button"
@@ -500,7 +558,7 @@ export default function ChatPage({ user, onLogout }) {
               <button
                 onClick={() =>
                   setCurrentMatchIndex((prev) =>
-                    prev < searchMatches.length - 1 ? prev + 1 : 0
+                    prev < (searchMatches?.length || 1) - 1 ? prev + 1 : 0
                   )
                 }
                 className="search-nav-button"
@@ -531,7 +589,14 @@ export default function ChatPage({ user, onLogout }) {
         />
       </div>
       {previewUrl && (
-        <PreviewPanel url={previewUrl} onClose={() => setPreviewUrl(null)} />
+        <PreviewPanel
+          url={previewUrl}
+          fileName={previewFileName}
+          onClose={() => {
+            setPreviewUrl(null);
+            setPreviewFileName("");
+          }}
+        />
       )}
       <SettingsModal
         open={openSettings}
@@ -548,7 +613,7 @@ export default function ChatPage({ user, onLogout }) {
 // 메시지에서 제목 생성 함수
 function generateTitleFromMessage(message) {
   if (!message) return "새 대화";
-  
+
   // 첫 20자까지만 제목으로 사용
   const title = message.trim();
   return title.length > 20 ? title.substring(0, 20) + "..." : title;

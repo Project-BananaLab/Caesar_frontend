@@ -27,7 +27,11 @@ const isAdminRole = (auth) =>
   (auth?.role || localStorage.getItem("role") || "").toLowerCase() === "admin";
 
 /** 보호 라우트 */
-function ProtectedRoute({ children, requireAdmin = false, blockAdmin = false }) {
+function ProtectedRoute({
+  children,
+  requireAdmin = false,
+  blockAdmin = false,
+}) {
   const authData = loadAuthData();
   if (!authData) return <Navigate to="/login" replace />;
 

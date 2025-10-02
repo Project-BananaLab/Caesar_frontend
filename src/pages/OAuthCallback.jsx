@@ -30,7 +30,6 @@ export default function OAuthCallback() {
         },
         window.location.origin
       );
-      window.close();
     } else {
       // 토큰이 없으면 에러 처리
       window.opener?.postMessage(

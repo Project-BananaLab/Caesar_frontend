@@ -5,7 +5,11 @@ import { setCookie, getCookie } from "../shared/utils/cookies.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
-export default function MergedGoogleLoginButton({ onSuccess, onError, companyCode }) {
+export default function MergedGoogleLoginButton({
+  onSuccess,
+  onError,
+  companyCode,
+}) {
   const [hasAccessToken, setHasAccessToken] = useState(false);
 
   // 상세 스코프 배열
@@ -55,31 +59,40 @@ export default function MergedGoogleLoginButton({ onSuccess, onError, companyCod
         setHasAccessToken(true);
 
         // 구글 사용자 정보
-        const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-          headers: { Authorization: `Bearer ${access_token}` },
-        });
-        if (!userInfoResponse.ok) throw new Error("Google 사용자 정보 조회 실패");
+        const userInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v2/userinfo",
+          {
+            headers: { Authorization: `Bearer ${access_token}` },
+          }
+        );
+        if (!userInfoResponse.ok)
+          throw new Error("Google 사용자 정보 조회 실패");
         const userInfo = await userInfoResponse.json();
         console.log("✅ Google 사용자 정보:", userInfo);
 
         // 백엔드로 가입/로그인 요청 (회사코드 포함)
-        const backendResponse = await fetch(`${API_BASE}/employees/google-login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            company_code: companyCode,          // ★ 중요: 회사코드 함께 전송
-            google_user_id: userInfo.id,
-            email: userInfo.email,
-            full_name: userInfo.name,
-          }),
-        });
+        const backendResponse = await fetch(
+          `${API_BASE}/employees/google-login`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              company_code: companyCode, // ★ 중요: 회사코드 함께 전송
+              google_user_id: userInfo.id,
+              email: userInfo.email,
+              full_name: userInfo.name,
+            }),
+          }
+        );
         if (!backendResponse.ok) {
           const err = await backendResponse.json().catch(() => ({}));
-          throw new Error(err?.detail || err?.message || "백엔드 서버 응답 오류");
+          throw new Error(
+            err?.detail || err?.message || "백엔드 서버 응답 오류"
+          );
         }
         const employeeData = await backendResponse.json();
         console.log("✅ 백엔드 응답 (직원 정보):", employeeData);
-        
+
         // 상위로 넘길 통합 데이터
         const finalLoginData = {
           type: "google",
@@ -87,7 +100,7 @@ export default function MergedGoogleLoginButton({ onSuccess, onError, companyCod
           google_user_id: userInfo.id, // 중복이지만 일관성을 위해 추가
           email: userInfo.email,
           username: userInfo.name,
-          full_name: userInfo.name,    // 백엔드 호환을 위한 필드
+          full_name: userInfo.name, // 백엔드 호환을 위한 필드
           picture: userInfo.picture,
           accessToken: access_token,
           employeeData, // { id, company_id, ... }
@@ -96,11 +109,14 @@ export default function MergedGoogleLoginButton({ onSuccess, onError, companyCod
 
         // 쿠키에 사용자 정보 저장
         setCookie("google_user_info", JSON.stringify(finalLoginData), 7);
-        
+
         // localStorage에 중요한 정보 저장 (새로고침 대응)
         localStorage.setItem("employee_id", String(employeeData.id));
         localStorage.setItem("google_access_token", access_token);
-        localStorage.setItem("google_user_info", JSON.stringify(finalLoginData));
+        localStorage.setItem(
+          "google_user_info",
+          JSON.stringify(finalLoginData)
+        );
 
         onSuccess?.(finalLoginData);
       } catch (error) {
@@ -119,7 +135,13 @@ export default function MergedGoogleLoginButton({ onSuccess, onError, companyCod
       <button
         onClick={() => login()}
         className="login-button company-login"
-        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+        }}
         disabled={!companyCode} // 회사코드 없으면 비활성화(선택)
         title={!companyCode ? "회사 코드를 입력하세요" : ""}
       >
