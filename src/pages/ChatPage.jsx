@@ -316,24 +316,37 @@ export default function ChatPage({ user, onLogout }) {
       if (agentResult.sources && agentResult.sources.length > 0) {
         console.log("✅ Sources 배열 존재, 길이:", agentResult.sources.length);
 
+        // 파일 소스 또는 구글 드라이브 소스 찾기
         const fileSource = agentResult.sources.find(
           (s) => s.source_type === "file"
         );
+        const driveSource = agentResult.sources.find(
+          (s) => s.source_type === "drive"
+        );
 
         console.log("🔍 파일 소스 찾기 결과:", fileSource);
-        console.log("🔍 파일 소스 download_url:", fileSource?.download_url);
+        console.log("🔍 구글 드라이브 소스 찾기 결과:", driveSource);
 
         if (fileSource) {
           previewFile = {
             url: fileSource.preview_url,
             fileName: fileSource.filename,
             downloadUrl: fileSource.download_url,
-            download_url: fileSource.download_url, // ChatMessageList에서 사용하는 키 추가
-            s3_url: fileSource.s3_url, // S3 URL 추가
+            download_url: fileSource.download_url,
+            s3_url: fileSource.s3_url,
           };
-          console.log("✅ previewFile 생성됨:", previewFile);
+          console.log("✅ RAG previewFile 생성됨:", previewFile);
+        } else if (driveSource) {
+          previewFile = {
+            url: driveSource.preview_url,
+            fileName: driveSource.filename,
+            downloadUrl: driveSource.download_url,
+            download_url: driveSource.download_url,
+            s3_url: driveSource.s3_url, // 구글 드라이브 미리보기 링크
+          };
+          console.log("✅ 구글 드라이브 previewFile 생성됨:", previewFile);
         } else {
-          console.log("❌ 파일 타입 소스를 찾을 수 없음");
+          console.log("❌ 파일 또는 드라이브 소스를 찾을 수 없음");
         }
       } else {
         console.log("❌ Sources 배열이 비어있거나 없음");
@@ -342,7 +355,9 @@ export default function ChatPage({ user, onLogout }) {
       // 백엔드에 채팅 저장 (사용자 질문 + AI 응답 + optional previewFile)
       const chatMessages = [
         { role: "user", content: userInput },
-        { role: "agent", content: agentResult.response, previewFile },
+        previewFile
+          ? { role: "agent", content: agentResult.response, previewFile }
+          : { role: "agent", content: agentResult.response },
       ];
 
       let updatedChat;
