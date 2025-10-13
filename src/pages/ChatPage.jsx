@@ -313,19 +313,34 @@ export default function ChatPage({ user, onLogout }) {
         JSON.stringify(agentResult.sources, null, 2)
       );
 
-      if (agentResult.sources && agentResult.sources.length > 0) {
+      // ✅ 캘린더/슬랙 요청인지 확인 (미리보기 버튼 생성 방지)
+      const isCalendarOrSlackRequest =
+        userInput.includes("일정") ||
+        userInput.includes("미팅") ||
+        userInput.includes("캘린더") ||
+        userInput.includes("슬랙") ||
+        userInput.includes("채널") ||
+        userInput.includes("메시지");
+
+      if (isCalendarOrSlackRequest) {
+        console.log("🔍 캘린더/슬랙 요청으로 판단, previewFile 생성하지 않음");
+      } else if (agentResult.sources && agentResult.sources.length > 0) {
         console.log("✅ Sources 배열 존재, 길이:", agentResult.sources.length);
 
-        // 파일 소스 또는 구글 드라이브 소스 찾기
+        // 파일 소스, 구글 드라이브 소스, 노션 소스 찾기
         const fileSource = agentResult.sources.find(
           (s) => s.source_type === "file"
         );
         const driveSource = agentResult.sources.find(
           (s) => s.source_type === "drive"
         );
+        const notionSource = agentResult.sources.find(
+          (s) => s.source_type === "notion"
+        );
 
         console.log("🔍 파일 소스 찾기 결과:", fileSource);
         console.log("🔍 구글 드라이브 소스 찾기 결과:", driveSource);
+        console.log("🔍 노션 소스 찾기 결과:", notionSource);
 
         if (fileSource) {
           previewFile = {
@@ -345,8 +360,17 @@ export default function ChatPage({ user, onLogout }) {
             s3_url: driveSource.s3_url, // 구글 드라이브 미리보기 링크
           };
           console.log("✅ 구글 드라이브 previewFile 생성됨:", previewFile);
+        } else if (notionSource) {
+          previewFile = {
+            url: notionSource.url,
+            fileName: notionSource.title,
+            downloadUrl: notionSource.url,
+            download_url: notionSource.url,
+            s3_url: notionSource.s3_url, // 노션 페이지 링크
+          };
+          console.log("✅ 노션 previewFile 생성됨:", previewFile);
         } else {
-          console.log("❌ 파일 또는 드라이브 소스를 찾을 수 없음");
+          console.log("❌ 파일, 드라이브, 노션 소스를 찾을 수 없음");
         }
       } else {
         console.log("❌ Sources 배열이 비어있거나 없음");
@@ -407,24 +431,8 @@ export default function ChatPage({ user, onLogout }) {
 
       // 기존 대화 업데이트 또는 새 대화 생성
       if (hasValidConversation) {
-        // 기존 대화 업데이트: 기존 메시지의 previewFile 정보 보존하면서 전체 업데이트
-        setMessages((prevMessages) => {
-          // 기존 메시지들의 previewFile 정보를 맵으로 저장
-          const existingPreviewFiles = {};
-          prevMessages.forEach((msg) => {
-            if (msg.previewFile) {
-              // 메시지 내용을 키로 사용하여 previewFile 정보 저장
-              existingPreviewFiles[msg.text] = msg.previewFile;
-            }
-          });
-
-          // 새로운 메시지들에 기존 previewFile 정보 복원
-          return finalMessages.map((msg) => ({
-            ...msg,
-            previewFile:
-              msg.previewFile || existingPreviewFiles[msg.text] || null,
-          }));
-        });
+        // 기존 대화 업데이트: 백엔드에서 받은 메시지 그대로 사용
+        setMessages(finalMessages);
 
         // conversations 목록에서 해당 대화 업데이트
         const updatedConversation = {
