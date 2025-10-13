@@ -137,6 +137,12 @@
   font-weight: 500;
 }
 
+.personal-status-duplicated {
+  font-size: 12px;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
 .personal-status-error {
   font-size: 12px;
   color: #dc2626;

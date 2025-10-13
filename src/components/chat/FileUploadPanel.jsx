@@ -40,9 +40,24 @@ export default function FileUploadPanel({ onUploadSuccess, onClose }) {
 
         const result = await uploadPersonalFile(uploadingFile.file);
 
-        setUploadingFiles(prev => 
-          prev.map(f => f.id === uploadingFile.id ? { ...f, progress: 100, status: 'completed' } : f)
-        );
+        // 중복 파일 처리
+        if (result.duplicated) {
+          setUploadingFiles(prev => 
+            prev.map(f => f.id === uploadingFile.id ? { 
+              ...f, 
+              progress: 100, 
+              status: 'duplicated',
+              message: result.message || `동일한 파일이 이미 존재합니다: ${result.existingFileName || '알 수 없는 파일'}`
+            } : f)
+          );
+          
+          // 중복 파일 알림
+          alert(result.message || `동일한 파일이 이미 존재합니다: ${result.existingFileName || '알 수 없는 파일'}`);
+        } else {
+          setUploadingFiles(prev => 
+            prev.map(f => f.id === uploadingFile.id ? { ...f, progress: 100, status: 'completed' } : f)
+          );
+        }
 
         // 업로드 성공 콜백 호출
         if (onUploadSuccess) {
@@ -64,7 +79,7 @@ export default function FileUploadPanel({ onUploadSuccess, onClose }) {
     // 3초 후 완료된 파일들 제거
     setTimeout(() => {
       setUploadingFiles(prev => 
-        prev.filter(f => f.status !== 'completed' && f.status !== 'error')
+        prev.filter(f => f.status !== 'completed' && f.status !== 'error' && f.status !== 'duplicated')
       );
     }, 3000);
   };
@@ -169,6 +184,10 @@ export default function FileUploadPanel({ onUploadSuccess, onClose }) {
                 
                 {file.status === 'completed' && (
                   <span className="personal-status-completed">✅ 완료</span>
+                )}
+                
+                {file.status === 'duplicated' && (
+                  <span className="personal-status-duplicated">⚠️ 중복 파일</span>
                 )}
                 
                 {file.status === 'error' && (

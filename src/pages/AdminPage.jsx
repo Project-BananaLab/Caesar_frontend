@@ -135,15 +135,41 @@ export default function AdminPage({ user, onLogout }) {
         isPrivate: false,
         employeeId: null,
       })
-      // resp: { uploaded: [{ file, ok, docId, ... }, ...] }
-      const okCount = resp?.uploaded?.filter(u => u.ok).length || 0
+      // resp: { uploaded: [{ file, ok, docId, duplicated?, message?, ... }, ...] }
+      const results = resp?.uploaded || []
+      const okCount = results.filter(u => u.ok).length
+      const duplicatedCount = results.filter(u => u.ok && u.duplicated).length
+      const failedCount = results.filter(u => !u.ok).length
+
+      // 중복 파일 메시지 수집
+      const duplicatedMessages = results
+        .filter(u => u.ok && u.duplicated && u.message)
+        .map(u => u.message)
 
       // 대기열 초기화 & 목록 새로고침
       setUploadQueue([])
       await refreshList()
       setCurrentPage(1)
 
-      alert(`${okCount}개 파일이 성공적으로 업로드되었습니다.`)
+      // 결과 알림
+      let message = `${okCount}개 파일 처리 완료`
+      if (duplicatedCount > 0) {
+        message += `\n- 새로 업로드: ${okCount - duplicatedCount}개`
+        message += `\n- 중복 파일: ${duplicatedCount}개`
+      }
+      if (failedCount > 0) {
+        message += `\n- 실패: ${failedCount}개`
+      }
+      
+      // 중복 파일 상세 메시지 추가
+      if (duplicatedMessages.length > 0) {
+        message += `\n\n중복 파일 상세:`
+        duplicatedMessages.forEach(msg => {
+          message += `\n• ${msg}`
+        })
+      }
+
+      alert(message)
     } catch (error) {
       console.error('파일 업로드 실패:', error)
       alert(error?.message || '파일 업로드에 실패했습니다.')
